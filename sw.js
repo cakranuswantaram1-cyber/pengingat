@@ -45,12 +45,14 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('message', (event) => {
   const data = event.data || {};
   if (data.type === 'SHOW_NOTIF') {
+    const opts = data.opts || {};
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: './icons/icon-192.png',
       badge: './icons/icon-192.png',
-      vibrate: [200, 100, 200],
-      tag: data.tag || 'pengingat-dokumen',
+      vibrate: opts.vibrate || [300, 150, 300, 150, 300, 150, 300],
+      requireInteraction: opts.requireInteraction !== undefined ? opts.requireInteraction : true,
+      tag: opts.tag || data.tag || 'pengingat-dokumen',
       renotify: true
     });
   }

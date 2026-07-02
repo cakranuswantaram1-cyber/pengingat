@@ -204,6 +204,40 @@
   }
   .notif-banner.ok{ display:none; }
 
+  .alarm-bar{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 70;
+    background: var(--red);
+    color: #fff;
+    padding: 14px 18px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.3);
+    animation: alarmPulse 1s infinite;
+  }
+  .alarm-bar.show{ display: flex; }
+  .alarm-bar button{
+    background: #fff;
+    color: var(--red);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+  }
+  @keyframes alarmPulse{
+    0%, 100%{ opacity: 1; }
+    50%{ opacity: .85; }
+  }
+
   .btn-primary{
     background: var(--amber);
     color: #1a1300;
@@ -592,6 +626,11 @@
     <button id="btnEnableNotif">Aktifkan</button>
   </div>
 
+  <div class="alarm-bar" id="alarmBar">
+    <span>🔔 Ada pengingat jatuh tempo!</span>
+    <button id="btnStopAlarm">Matikan</button>
+  </div>
+
   <div class="view-header">
     <div class="view-title" id="viewTitle">Segera Jatuh Tempo</div>
     <div class="view-actions">
@@ -620,6 +659,17 @@
       <label class="file-label" for="fileImport">Pulihkan dari File Backup</label>
       <input type="file" id="fileImport" accept=".json" style="display:none;">
       <button class="btn-ghost" id="btnCloseBackup">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="exitOverlay">
+  <div class="modal backup-modal">
+    <h2>Keluar dari aplikasi?</h2>
+    <p>Tekan tombol back sekali lagi tidak akan menyimpan apa-apa yang berubah — data pengingat kamu tetap aman tersimpan.</p>
+    <div class="backup-actions">
+      <button class="btn-primary" id="btnExitConfirm">Ya, Keluar</button>
+      <button class="btn-ghost" id="btnExitCancel">Batal</button>
     </div>
   </div>
 </div>
@@ -690,7 +740,7 @@ function getAudioCtx(){
   }
   return audioCtx;
 }
-function playAlarm(){
+function playBeepBurst(){
   const ctx = getAudioCtx();
   if(ctx.state === 'suspended') ctx.resume();
   const now = ctx.currentTime;
@@ -709,6 +759,21 @@ function playAlarm(){
     osc.stop(now + t + 0.3);
   });
 }
+let alarmLoopId = null;
+function startAlarm(){
+  document.getElementById('alarmBar').classList.add('show');
+  if(alarmLoopId) return;
+  playBeepBurst();
+  alarmLoopId = setInterval(playBeepBurst, 1500);
+}
+function stopAlarm(){
+  if(alarmLoopId){
+    clearInterval(alarmLoopId);
+    alarmLoopId = null;
+  }
+  document.getElementById('alarmBar').classList.remove('show');
+}
+document.getElementById('btnStopAlarm').addEventListener('click', stopAlarm);
 
 // ---------- Notifications ----------
 function updateNotifBanner(){
@@ -730,14 +795,22 @@ document.getElementById('btnEnableNotif').addEventListener('click', ()=>{
 });
 function fireNotification(title, body){
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opts = {
+    body,
+    icon:'icons/icon-192.png',
+    badge:'icons/icon-192.png',
+    vibrate:[300,150,300,150,300,150,300],
+    requireInteraction: true,
+    tag: 'pengingat-' + title
+  };
   if(navigator.serviceWorker && navigator.serviceWorker.controller){
-    navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF', title, body});
+    navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF', title, body, opts});
   }else if(navigator.serviceWorker){
     navigator.serviceWorker.ready.then(reg=>{
-      reg.showNotification(title, {body, icon:'icons/icon-192.png', badge:'icons/icon-192.png', vibrate:[200,100,200]});
-    }).catch(()=>{ try{ new Notification(title, {body}); }catch(e){} });
+      reg.showNotification(title, opts);
+    }).catch(()=>{ try{ new Notification(title, opts); }catch(e){} });
   }else{
-    try{ new Notification(title, {body}); }catch(e){}
+    try{ new Notification(title, opts); }catch(e){}
   }
 }
 
@@ -844,10 +917,14 @@ function viewAddLabel(view){
   return '+ Tambah ' + viewLabel(view);
 }
 
-function setView(view){
+function setView(view, opts){
+  opts = opts || {};
   currentView = view;
   render();
   window.scrollTo({top:0, behavior:'smooth'});
+  if(!opts.silent){
+    history.pushState({view: view}, '');
+  }
 }
 
 function updateViewHeader(){
@@ -1030,12 +1107,12 @@ function checkAlerts(now){
     const warnMs = r.hariPeringatan * 86400000;
     if(diff <= 0 && r.alertStage !== 'lewat'){
       fireNotification('Masa berlaku habis: ' + r.nama, r.nama + ' sudah melewati tanggal habis berlaku.');
-      playAlarm();
+      startAlarm();
       r.alertStage = 'lewat';
       changed = true;
     }else if(diff > 0 && diff <= warnMs && r.alertStage !== 'peringatan' && r.alertStage !== 'lewat'){
       fireNotification('Segera perpanjang: ' + r.nama, r.nama + ' akan habis dalam ' + r.hariPeringatan + ' hari atau kurang.');
-      playAlarm();
+      startAlarm();
       r.alertStage = 'peringatan';
       changed = true;
     }
@@ -1175,8 +1252,8 @@ document.getElementById('btnSave').addEventListener('click', ()=>{
 });
 
 document.getElementById('btnTestAlarm').addEventListener('click', ()=>{
-  playAlarm();
-  fireNotification('Tes notifikasi', 'Begini tampilan notifikasi & bunyi alarm pengingatmu.');
+  startAlarm();
+  fireNotification('Tes notifikasi', 'Begini tampilan notifikasi & bunyi alarm pengingatmu. Ketuk "Matikan" di bawah untuk menghentikan.');
 });
 
 // ---------- Drawer menu ----------
@@ -1270,10 +1347,59 @@ document.getElementById('fileImport').addEventListener('change', (e)=>{
   reader.readAsText(file);
 });
 
+// ---------- Tombol back (Android): balik ke dashboard dulu, baru konfirmasi keluar ----------
+let intentionalExit = false;
+
+function closeAnyOverlay(){
+  if(drawer.classList.contains('show')) closeDrawer();
+  if(overlay.classList.contains('show')) closeModal();
+  if(backupOverlay.classList.contains('show')) backupOverlay.classList.remove('show');
+}
+function showExitConfirm(){
+  document.getElementById('exitOverlay').classList.add('show');
+}
+function hideExitConfirm(){
+  document.getElementById('exitOverlay').classList.remove('show');
+}
+
+window.addEventListener('popstate', (e)=>{
+  closeAnyOverlay();
+
+  if(intentionalExit){
+    intentionalExit = false;
+    history.back();
+    return;
+  }
+
+  const state = e.state;
+
+  if(state && state.view){
+    currentView = state.view;
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+
+  // Tidak ada state lagi saat di dashboard = niat keluar aplikasi.
+  history.pushState({view:'dashboard', guard:true}, '');
+  currentView = 'dashboard';
+  render();
+  showExitConfirm();
+});
+
+document.getElementById('btnExitCancel').addEventListener('click', hideExitConfirm);
+document.getElementById('btnExitConfirm').addEventListener('click', ()=>{
+  hideExitConfirm();
+  intentionalExit = true;
+  history.back();
+});
+
 // ---------- Init ----------
 loadReminders();
 updateNotifBanner();
 render();
+history.replaceState({view:'dashboard'}, '');
+history.pushState({view:'dashboard', guard:true}, '');
 setInterval(tick, 1000);
 
 if('serviceWorker' in navigator){
