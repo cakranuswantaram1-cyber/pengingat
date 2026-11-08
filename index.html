@@ -1,0 +1,3423 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pengingat Dokumen</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#F3F5FA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0F1E" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pengingat">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5FA; --bg-soft:#FFFFFF; --card:#FFFFFF; --card-border:#E3E8F2;
+  --text:#0F172A; --text-dim:#64748B; --accent:#4F46E5; --accent-ink:#FFFFFF; --accent-soft:rgba(79,70,229,.10);
+  --amber:#D97706; --red:#DC2626; --green:#16A34A; --blue:#2563EB;
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 10px 28px rgba(15,23,42,.07);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A0F1E; --bg-soft:#10172B; --card:#131B33; --card-border:#222C4A;
+    --text:#E9EDF8; --text-dim:#8E99B8; --accent:#7C86FF; --accent-ink:#0A0F1E; --accent-soft:rgba(124,134,255,.15);
+    --amber:#F5A94A; --red:#FF6B6F; --green:#4ADE80; --blue:#7DA2FF;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.28);
+    color-scheme:dark;
+  }
+}
+[data-theme="dark"]{
+  --bg:#0A0F1E; --bg-soft:#10172B; --card:#131B33; --card-border:#222C4A;
+  --text:#E9EDF8; --text-dim:#8E99B8; --accent:#7C86FF; --accent-ink:#0A0F1E; --accent-soft:rgba(124,134,255,.15);
+  --amber:#F5A94A; --red:#FF6B6F; --green:#4ADE80; --blue:#7DA2FF;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.28); color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg) radial-gradient(900px 380px at 0% -8%,var(--accent-soft),transparent 65%) no-repeat;
+  color:var(--text);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;padding-bottom:110px;-webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px 0}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:40;padding:12px 16px;background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--card-border)}
+.topbar-inner{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;
+  background:linear-gradient(135deg,#6366F1,#8B5CF6);box-shadow:0 6px 16px rgba(99,102,241,.35)}
+.brand-title{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.brand-sub{font-size:11.5px;color:var(--text-dim);margin-top:2px;font-weight:500}
+.burger{width:42px;height:42px;border-radius:12px;background:var(--card);border:1px solid var(--card-border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:var(--shadow)}
+.burger span{display:block;width:17px;height:2px;background:var(--text);border-radius:2px;transition:transform .25s,opacity .25s}
+.burger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+header{margin:2px 0 14px}
+header p{color:var(--text-dim);font-size:13.5px;line-height:1.5}
+
+/* Drawer */
+.drawer-overlay{position:fixed;inset:0;background:rgba(8,12,24,.55);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:55}
+.drawer-overlay.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(320px,88vw);background:var(--bg-soft);border-left:1px solid var(--card-border);
+  border-radius:24px 0 0 24px;padding:20px 14px;display:flex;flex-direction:column;gap:4px;overflow-y:auto;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:60;box-shadow:var(--shadow)}
+.drawer.show{transform:none}
+.drawer-header{padding:0 8px 14px}
+.drawer-header span{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.drawer-item{display:flex;align-items:center;gap:12px;width:100%;flex-shrink:0;text-align:left;background:transparent;border:0;
+  color:var(--text);padding:9px 10px;border-radius:14px;font-size:14.5px;font-weight:500}
+.drawer-item .emoji{width:34px;height:34px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.drawer-item:hover{background:var(--bg)}
+.drawer-item.primary{background:var(--accent);color:var(--accent-ink);font-weight:700;margin-bottom:6px;padding:12px}
+.drawer-item.primary .emoji{background:rgba(255,255,255,.2)}
+.drawer-item.nav-item.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.drawer-item.nav-item.active .emoji{background:var(--card)}
+.drawer-item .count{margin-left:auto;font-size:11.5px;font-weight:700;background:var(--bg);border-radius:999px;padding:2px 9px;color:var(--text-dim)}
+.drawer-item .count.warn{background:var(--red);color:#fff}
+.drawer-divider{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);padding:14px 10px 6px}
+
+/* Banner & alarm */
+.notif-banner{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:12px 14px;margin:0 0 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--text-dim);box-shadow:var(--shadow)}
+.notif-banner button{background:var(--accent);color:var(--accent-ink);border:0;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;white-space:nowrap}
+.notif-banner.ok{display:none}
+.alarm-bar{position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:70;background:var(--red);color:#fff;
+  padding:12px 14px;border-radius:16px;display:none;align-items:center;justify-content:space-between;gap:12px;font-size:14px;font-weight:600;
+  box-shadow:0 12px 30px rgba(220,38,38,.4);animation:pulse 1.2s infinite}
+.alarm-bar.show{display:flex}
+.alarm-bar{flex-wrap:wrap}
+.alarm-bar .alarm-txt{flex:1 1 100%;line-height:1.35}
+.alarm-btns{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.alarm-btns button{flex:1 1 auto}
+.alarm-bar button.alt{background:rgba(255,255,255,.22);color:#fff}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip-row button{padding:8px 12px;font-size:13px}
+.icon-btn.resched-btn{grid-column:1/-1;color:var(--amber)}
+.pw-box{display:flex;gap:8px;align-items:center}
+#undoToast{position:fixed;left:12px;right:12px;max-width:460px;margin:0 auto;bottom:calc(96px + env(safe-area-inset-bottom));z-index:131;display:none;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--text);color:var(--bg);padding:11px 12px 11px 16px;border-radius:14px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow)}
+#undoToast.show{display:flex}
+#undoToast button{background:transparent;border:0;color:inherit;font-weight:800;font-size:13.5px;padding:6px 10px;border-radius:8px;text-decoration:underline;text-underline-offset:3px}
+body:has(.alarm-bar.show) #undoToast{bottom:calc(190px + env(safe-area-inset-bottom))}
+.cal-day em{position:absolute;top:3px;right:5px;font-style:normal;font-size:9.5px;font-weight:800;color:var(--text-dim)}
+.cal-day.sel em{color:var(--accent-ink)}
+.cal-day.weekend{color:var(--red)}
+.cal-day.sel.weekend{color:var(--accent-ink)}
+.cal-sub{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 2px 0;font-size:12.5px;color:var(--text-dim)}
+.cal-tools{display:flex;gap:8px;align-items:center}
+.cal-today{padding:0 12px;height:40px;border-radius:12px;border:1px solid var(--card-border);background:var(--card);color:var(--accent);font-weight:700;font-size:13px}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap}
+.cal-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--dot)}
+.cal-addbtn{width:100%;margin-top:10px}
+/* v2.1 */
+.ph-title{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);margin:14px 0 6px}
+.chk-row{display:flex;gap:10px;align-items:flex-start;padding:7px 2px;font-size:14px;cursor:pointer}
+.chk-row input{width:20px;height:20px;margin-top:1px;accent-color:var(--accent);flex-shrink:0}
+.chk-row input:checked + span{text-decoration:line-through;color:var(--text-dim)}
+.pay-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--card-border)}
+.pay-row small{color:var(--text-dim)}
+.chk-edit{display:flex;gap:8px;margin-bottom:8px}
+.chk-edit input{flex:1}
+.chk-edit button{width:42px;border-radius:12px;border:1px solid var(--card-border);background:var(--bg);color:var(--red);font-size:15px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:150px;background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:22px 10px 8px;box-shadow:var(--shadow)}
+.bcol{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;min-width:0}
+.bcol .bar{width:100%;max-width:22px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 55%,transparent));min-height:2px}
+.bcol .bar.zero{background:var(--card-border)}
+.bcol .v{font-size:8.5px;font-weight:700;color:var(--text-dim);white-space:nowrap;margin-bottom:-1px}
+.bcol small{font-size:9.5px;color:var(--text-dim);text-transform:capitalize}
+.hbar{margin:10px 0}
+.hbar .t{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px}
+.hbar .tr{height:8px;border-radius:999px;background:var(--card-border);overflow:hidden}
+.hbar .tr i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+/* Riwayat Pembayaran, Anggaran & Proyeksi, Anggota & Profil */
+.fx-box{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.fx-box h3{font-size:14px;font-weight:700;margin-bottom:8px}
+.fx-inline{display:flex;gap:8px}
+.fx-inline input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--card-border);color:var(--text);padding:11px 13px;border-radius:12px;font-size:15px;font-family:inherit}
+.fx-inline button{flex-shrink:0;padding:11px 16px}
+.fx-mon{background:var(--card);border:1px solid var(--card-border);border-radius:16px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden}
+.fx-mon summary{list-style:none;cursor:pointer;padding:13px 14px;display:block}
+.fx-mon summary::-webkit-details-marker{display:none}
+.fx-mon .fx-h{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:600}
+.fx-mon .fx-s{font-size:12px;color:var(--text-dim);margin-top:4px}
+.fx-mon .fx-body{padding:2px 14px 8px;border-top:1px solid var(--card-border)}
+.fx-prog{height:8px;border-radius:999px;background:var(--card-border);overflow:hidden;margin-top:8px}
+.fx-prog i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.fx-row{display:flex;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px dashed var(--card-border);font-size:13.5px}
+.fx-row:last-child{border-bottom:0}
+.fx-row small{display:block;color:var(--text-dim);font-size:11.5px;margin-top:2px}
+.fx-row b{white-space:nowrap}
+.fx-over{color:var(--red)}.fx-warn{color:var(--amber)}.fx-ok{color:var(--green)}
+.fx-own{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--card-border);font-size:13.5px}
+.fx-own span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fx-own select{flex:0 0 44%;min-width:0;background:var(--card);color:var(--text);border:1px solid var(--card-border);border-radius:12px;padding:8px 10px;font-size:13px;font-family:inherit}
+.fx-link{cursor:pointer}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.kpi div{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:12px}
+.kpi b{display:block;font-size:17px;letter-spacing:-.01em}.kpi span{font-size:11.5px;color:var(--text-dim)}
+.enc-note{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:6px}
+.alarm-bar button{background:#fff;color:var(--red);border:0;padding:9px 14px;border-radius:10px;font-weight:700;font-size:13.5px}
+@keyframes pulse{50%{transform:scale(.99);opacity:.93}}
+
+/* Buttons */
+.btn-primary{background:var(--accent);color:var(--accent-ink);border:0;padding:13px 20px;border-radius:12px;font-weight:600;font-size:14.5px}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--card-border);padding:13px 16px;border-radius:12px;font-weight:500;font-size:14.5px}
+.file-label{display:block;text-align:center;background:var(--accent-soft);color:var(--accent);padding:13px 16px;border-radius:12px;font-weight:600;font-size:14.5px;cursor:pointer}
+
+/* View header, search, toolbar, tabs */
+.view-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.view-title{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.view-actions{display:flex;gap:8px}
+.view-add,.view-back{border:0;border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600}
+.view-add{background:var(--accent);color:var(--accent-ink)}
+.view-back{background:var(--card);color:var(--text);border:1px solid var(--card-border)}
+.search-box{margin-bottom:12px}
+.search-box input{width:100%;background:var(--card);border:1px solid var(--card-border);color:var(--text);padding:13px 16px;border-radius:14px;font-size:14.5px;font-family:inherit;box-shadow:var(--shadow)}
+.search-box input:focus,.toolbar select:focus,.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.toolbar{display:flex;gap:8px;margin-bottom:12px}
+.toolbar select{flex:1;min-width:0;background:var(--card);color:var(--text);border:1px solid var(--card-border);border-radius:12px;padding:10px 12px;font-size:13px;font-family:inherit}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:4px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;background:var(--card);color:var(--text-dim);border:1px solid var(--card-border);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:500}
+.tab.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+
+/* Cards */
+#list{display:flex;flex-direction:column;gap:14px}
+.card{--status-color:var(--green);background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:18px;box-shadow:var(--shadow),inset 4px 0 0 var(--status-color)}
+.card.is-selesai{opacity:.65}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.card-title{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.card-date{font-size:13px;color:var(--text-dim);margin-top:4px;line-height:1.4}
+.grup-pill{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;white-space:nowrap;
+  color:var(--status-color);background:color-mix(in srgb,var(--status-color) 14%,transparent)}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.repeat-tag{font-size:12px;color:var(--text-dim);margin-top:12px}
+.repeat-tag::before{content:"↻ "}
+.countdown{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:12px}
+.unit{background:var(--bg);border-radius:12px;padding:10px 0 8px;text-align:center;min-width:0}
+.unit .num{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--status-color);letter-spacing:-.02em}
+.unit .lbl{font-size:8.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--text-dim);margin-top:2px}
+.approx{font-size:12.5px;color:var(--text-dim);margin-top:12px;line-height:1.45}
+.card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.icon-btn{background:var(--bg);color:var(--text);border:1px solid var(--card-border);border-radius:12px;padding:11px 8px;font-size:13.5px;font-weight:600}
+.icon-btn.done-btn{grid-column:1/-1;background:color-mix(in srgb,var(--green) 14%,transparent);border-color:transparent;color:var(--green)}
+.icon-btn.danger{color:var(--red)}
+.card-cost{margin-top:10px;font-size:13px;font-weight:700;color:var(--amber)}
+.card-note{margin-top:8px;font-size:13px;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:12px;line-height:1.5}
+.empty{text-align:center;color:var(--text-dim);font-size:14px;line-height:1.6;padding:36px 20px;border:1.5px dashed var(--card-border);border-radius:20px}
+footer{margin:28px 0 8px;text-align:center;font-size:12px;color:var(--text-dim);line-height:1.5}
+
+/* Ringkasan */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--card-border);border-radius:18px;padding:16px;box-shadow:var(--shadow),inset 0 3px 0 var(--c,var(--blue))}
+.stat .n{font-size:30px;font-weight:800;letter-spacing:-.03em}
+.stat .l{font-size:12.5px;color:var(--text-dim);margin-top:2px;font-weight:500}
+.grup-row{display:flex;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--card-border);font-size:14px}
+
+/* Modal (bottom sheet di HP) */
+.overlay{position:fixed;inset:0;z-index:80;display:none;align-items:flex-end;justify-content:center;background:rgba(8,12,24,.55);backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+.modal{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid var(--card-border);border-radius:26px 26px 0 0;
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:var(--shadow);animation:sheet .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media(min-width:640px){.overlay{align-items:center}.modal{border-radius:24px}}
+.modal h2{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-bottom:14px}
+.modal p{color:var(--text-dim);font-size:14px;line-height:1.55}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--card-border);color:var(--text);padding:12px 14px;border-radius:12px;font-size:15px;font-family:inherit}
+.field textarea{min-height:76px;resize:vertical}
+.hint{font-size:12px;color:var(--text-dim);margin-top:6px;line-height:1.45}
+.modal-actions{display:flex;gap:10px;margin-top:6px}
+.modal-actions button{flex:1}
+.backup-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.check-row{display:flex;align-items:center;gap:10px;font-size:14.5px;color:var(--text)!important}
+.field .check-row input{width:20px;height:20px;accent-color:var(--accent);padding:0}
+.about-list{margin:12px 0 0 18px;color:var(--text-dim);font-size:13.5px;line-height:1.7}
+
+/* Kalender */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-head b{font-size:16px;font-weight:700;text-transform:capitalize}
+.cal-nav{width:40px;height:40px;border-radius:12px;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:16px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:var(--card);border:1px solid var(--card-border);border-radius:20px;padding:12px;box-shadow:var(--shadow)}
+.cal-dow{text-align:center;font-size:11px;font-weight:600;color:var(--text-dim);padding:4px 0}
+.cal-day{aspect-ratio:1;border:1.5px solid transparent;background:none;color:var(--text);border-radius:12px;font-size:14px;font-weight:500;position:relative}
+.cal-day.today{border-color:var(--accent)}
+.cal-day.sel{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.cal-day i{position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--dot)}
+.cal-day.sel i{background:var(--accent-ink)}
+.cal-row{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--card);border:1px solid var(--card-border);border-left:4px solid var(--dot);border-radius:14px;padding:12px 14px;margin-top:8px;font-size:14px;font-weight:600;cursor:pointer}
+.cal-row small{color:var(--text-dim);font-weight:500}
+
+/* Grup & Riwayat */
+.grup-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.gi-ic{width:44px;height:44px;border-radius:14px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.gi-tx{flex:1;min-width:0}.gi-tx b{display:block;font-size:15px}.gi-tx small{color:var(--text-dim);font-size:12px}
+.grup-item .icon-btn{padding:8px 12px}
+.emoji-pick{display:flex;flex-wrap:wrap;gap:8px}
+.emoji-pick button{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--card-border);background:var(--bg);font-size:20px}
+.emoji-pick button.on{border-color:var(--accent);background:var(--accent-soft)}
+.log-row{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--card-border);border-radius:14px;font-size:14px;line-height:1.4}
+.log-ic{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c) 14%,transparent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.log-row small{color:var(--text-dim)}
+
+/* Navigasi bawah */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;justify-content:space-around;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card) 88%,transparent);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--card-border)}
+.bn-item{flex:1;max-width:84px;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;
+  font-size:10.5px;font-weight:600;color:var(--text-dim);border-radius:12px}
+.bn-item .ic{font-size:19px;filter:grayscale(1);opacity:.7}
+.bn-item.active{color:var(--accent)}
+.bn-item.active .ic{filter:none;opacity:1}
+.bn-fab{width:54px;height:54px;margin-top:-26px;border:0;border-radius:18px;background:linear-gradient(135deg,#6366F1,#8B5CF6);color:#fff;
+  font-size:28px;line-height:1;box-shadow:0 10px 24px rgba(99,102,241,.45)}
+
+/* ===== v2: ringkas & modern ===== */
+#list{gap:10px}
+.card{padding:0;border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.card-main{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer}
+.c-ic{width:46px;height:46px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:color-mix(in srgb,var(--status-color) 15%,transparent)}
+.c-tx{flex:1;min-width:0}
+.card-title{font-size:15.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-date{font-size:12.5px;color:var(--text-dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-right{text-align:right;flex-shrink:0}
+.rel{font-size:14.5px;font-weight:800;color:var(--status-color);letter-spacing:-.01em}
+.badge{padding:0;background:none;font-size:11px;font-weight:600;margin-top:2px;justify-content:flex-end;color:var(--text-dim)}
+.badge::before{display:none}
+.card-detail{display:none;padding:2px 14px 14px;border-top:1px solid var(--card-border)}
+.card.open .card-detail{display:block}
+.card-detail .countdown{margin-top:12px}
+.hero{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border-radius:22px;padding:20px;box-shadow:0 14px 30px rgba(79,70,229,.32)}
+.hero-k{font-size:12px;font-weight:600;opacity:.75}
+.hero-t{font-size:26px;font-weight:800;letter-spacing:-.03em;margin-top:4px}
+.hero-s{font-size:13px;opacity:.85;margin-top:4px;line-height:1.4}
+.hero-chips{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:700;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.18)}
+.chip i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+.sec-t{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin:10px 2px 0}
+.notif-banner{padding:9px 12px;border-radius:14px;margin-bottom:12px;font-size:12.5px}
+.notif-banner button{padding:7px 12px;font-size:12.5px}
+.bn-item svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bottom-nav{background:var(--card)}
+.bn-fab{border-radius:50%;font-size:30px}
+
+.burger{position:relative}
+.burger.dirty::after{content:"";position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:90;max-width:88vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== v1.8: Kunci aplikasi & Brankas ===== */
+.alarm-bar{z-index:120}
+#toast{z-index:130}
+.lock-top{margin-left:auto;margin-right:8px;flex-direction:row;font-size:18px}
+.lock-screen{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow:auto;
+  background:var(--bg) radial-gradient(900px 420px at 50% -10%,var(--accent-soft),transparent 65%) no-repeat}
+.lock-box{width:100%;max-width:340px;text-align:center;margin:auto}
+.lock-ic{width:66px;height:66px;margin:0 auto 14px;border-radius:21px;display:flex;align-items:center;justify-content:center;font-size:30px;
+  background:linear-gradient(135deg,#6366F1,#8B5CF6);box-shadow:0 10px 24px rgba(99,102,241,.4)}
+.lock-title{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.lock-sub{color:var(--text-dim);font-size:14px;margin-top:6px;line-height:1.45}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:24px 0 10px}
+.pin-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--text-dim);transition:.15s}
+.pin-dots i.on{background:var(--accent);border-color:var(--accent);transform:scale(1.12)}
+.pin-dots.shake{animation:pinshake .42s}
+@keyframes pinshake{20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.lock-msg{min-height:34px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:8px;padding:0 6px;line-height:1.4}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:290px;margin:0 auto 16px}
+.key{aspect-ratio:1.3;border-radius:18px;border:1px solid var(--card-border);background:var(--card);color:var(--text);font-size:24px;font-weight:600;box-shadow:var(--shadow)}
+.key:active{background:var(--accent-soft);transform:scale(.97)}
+.lock-link{display:block;width:100%;background:none;border:0;color:var(--text-dim);font-size:13px;font-weight:600;padding:10px;margin-top:2px}
+.lock-bio{width:100%;max-width:290px;margin:0 auto}
+
+/* Brankas */
+.vinfo{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:11px 13px;font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.vinfo.ok{color:var(--green);font-weight:600;flex-direction:row}
+.vinfo .icon-btn{padding:8px 12px;font-size:12.5px}
+.vlist{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.vcard{--status-color:var(--green);background:var(--card);border:1px solid var(--card-border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.vcard-main{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer}
+.vcard .vdetail{display:none;padding:4px 14px 14px;border-top:1px solid var(--card-border)}
+.vcard.open .vdetail{display:block}
+.vprev{font-size:12.5px;color:var(--text-dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.vchip{font-size:11.5px;font-weight:700;color:var(--status-color);text-align:right;flex-shrink:0;max-width:110px;line-height:1.3}
+.vrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--card-border)}
+.vrow .vt{flex:1;min-width:0}
+.vk{font-size:11.5px;font-weight:600;color:var(--text-dim)}
+.vv{font-size:15px;font-weight:700;word-break:break-all;margin-top:2px;font-variant-numeric:tabular-nums}
+.vrow .mini{width:38px;height:38px;border-radius:11px;border:1px solid var(--card-border);background:var(--bg);font-size:15px;flex-shrink:0}
+.vmeta{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:13px;border-bottom:1px solid var(--card-border)}
+.vmeta span:first-child{color:var(--text-dim);flex-shrink:0}
+.vmeta span:last-child{text-align:right;font-weight:600;word-break:break-word}
+.vnote{margin-top:10px;font-size:13px;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;background:var(--bg);padding:10px 12px;border-radius:12px;line-height:1.5}
+.vactions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.brow{display:grid;grid-template-columns:1fr 1.4fr 38px;gap:6px;margin-bottom:8px}
+.brow input{min-width:0;padding:11px 12px!important;font-size:14px!important}
+.brow-x{border:1px solid var(--card-border);background:var(--bg);color:var(--red);border-radius:12px;font-size:14px}
+
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">⏰</div>
+      <div>
+        <div class="brand-title">Pengingat</div>
+        <div class="brand-sub">dokumen &amp; tagihan</div>
+      </div>
+    </div>
+    <button class="burger lock-top" id="btnLockTop" aria-label="Kunci sekarang" style="display:none;">🔒</button>
+    <button class="burger" id="btnMenu" aria-label="Buka menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <span>Menu</span>
+  </div>
+  <button class="drawer-item primary" id="btnAdd"><span class="emoji">➕</span> Tambah Pengingat</button>
+  <div class="drawer-divider">Menu Utama</div>
+  <button class="drawer-item nav-item" data-view="dashboard"><span class="emoji">🏠</span> Beranda</button>
+  <button class="drawer-item nav-item" data-view="ringkasan"><span class="emoji">📊</span> Ringkasan</button>
+  <button class="drawer-item nav-item" data-view="kalender"><span class="emoji">📅</span> Kalender</button>
+  <button class="drawer-item nav-item" data-view="brankas"><span class="emoji">🔐</span> Brankas Dokumen</button>
+  <button class="drawer-item nav-item" data-view="lewat"><span class="emoji">⚠️</span> Perlu Tindakan <span class="count" data-count="lewat">0</span></button>
+  <button class="drawer-item nav-item" data-view="semua"><span class="emoji">📋</span> Semua Pengingat <span class="count" data-count="semua">0</span></button>
+  <button class="drawer-item nav-item" data-view="riwayat"><span class="emoji">🕘</span> Riwayat Aktivitas</button>
+  <button class="drawer-item nav-item" data-view="selesai"><span class="emoji">✅</span> Arsip Selesai <span class="count" data-count="selesai">0</span></button>
+  <div class="drawer-divider">Keuangan &amp; Keluarga</div>
+  <button class="drawer-item nav-item" data-view="pembayaran"><span class="emoji">💳</span> Riwayat Pembayaran</button>
+  <button class="drawer-item nav-item" data-view="anggaran"><span class="emoji">🎯</span> Anggaran &amp; Proyeksi</button>
+  <button class="drawer-item nav-item" data-view="profil"><span class="emoji">👨‍👩‍👧</span> Anggota &amp; Profil</button>
+  <div class="drawer-divider">Kategori</div>
+  <button class="drawer-item nav-item" data-view="bulanan"><span class="emoji">💵</span> Tagihan Bulanan</button>
+  <div id="drawerGrup"></div>
+  <button class="drawer-item nav-item" data-view="kelola"><span class="emoji">⚙️</span> Kelola Grup</button>
+  <div class="drawer-divider">Data</div>
+  <button class="drawer-item" id="btnQuickBackup"><span class="emoji">⚡</span> Cadangkan Sekarang <span class="count warn" id="bkCount" style="display:none;">!</span></button>
+  <button class="drawer-item" id="btnBackup"><span class="emoji">💾</span> Backup &amp; Pulihkan</button>
+  <button class="drawer-item" id="btnPdf"><span class="emoji">📄</span> Laporan PDF</button>
+  <button class="drawer-item" id="btnCsv"><span class="emoji">📑</span> Ekspor CSV (Excel)</button>
+  <button class="drawer-item" id="btnWa"><span class="emoji">💬</span> Kirim ke WhatsApp</button>
+  <button class="drawer-item" id="btnTestAlarm"><span class="emoji">🔔</span> Tes Alarm</button>
+  <div class="drawer-divider">Aplikasi</div>
+  <button class="drawer-item" id="btnLockNow" style="display:none;"><span class="emoji">🔒</span> Kunci Sekarang</button>
+  <button class="drawer-item" id="btnKeamanan"><span class="emoji">🛡️</span> Keamanan &amp; Kunci</button>
+  <button class="drawer-item" id="btnSettings"><span class="emoji">⚙️</span> Pengaturan</button>
+  <button class="drawer-item" id="btnInstall" style="display:none;"><span class="emoji">📲</span> Pasang Aplikasi</button>
+  <button class="drawer-item" id="btnAbout"><span class="emoji">ℹ️</span> Bantuan &amp; Tentang</button>
+</div>
+
+<div class="wrap">
+
+  <div class="notif-banner" id="notifBanner">
+    <span>🔔 Aktifkan notifikasi pengingat</span>
+    <button id="btnEnableNotif">Aktifkan</button>
+  </div>
+
+  <div class="notif-banner ok" id="bkBanner">
+    <span id="bkBannerTxt">💾 Data belum dicadangkan</span>
+    <button id="btnBkBanner">Simpan</button>
+  </div>
+
+  <div class="alarm-bar" id="alarmBar">
+    <span class="alarm-txt" id="alarmTxt">🔔 Ada pengingat jatuh tempo!</span>
+    <div class="alarm-btns">
+      <button id="btnSnoozeAlarm" class="alt">⏰ Tunda 10 mnt</button>
+      <button id="btnReschedAlarm" class="alt">🗓️ Jadwalkan Ulang</button>
+      <button id="btnStopAlarm">Matikan</button>
+    </div>
+  </div>
+
+  <div class="view-header">
+    <div class="view-title" id="viewTitle">Segera Jatuh Tempo</div>
+    <div class="view-actions">
+      <button class="view-add" id="viewAdd">+ Tambah</button>
+      <button class="view-back" id="viewBack" style="display:none;">← Beranda</button>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Cari nama pengingat...">
+  </div>
+
+  <div class="toolbar" id="toolbar">
+    <select id="sortSel" aria-label="Urutkan">
+      <option value="terdekat">Urut: Tanggal terdekat</option>
+      <option value="terjauh">Urut: Tanggal terjauh</option>
+      <option value="az">Urut: Nama A–Z</option>
+      <option value="za">Urut: Nama Z–A</option>
+    </select>
+    <select id="statusSel" aria-label="Filter status">
+      <option value="semua">Semua status</option>
+      <option value="aman">Aman</option>
+      <option value="segera">Segera</option>
+      <option value="mendesak">Mendesak</option>
+      <option value="lewat">Lewat tempo</option>
+      <option value="selesai">Selesai</option>
+    </select>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="list"></div>
+
+  <footer>Data disimpan di browser ini saja (localStorage). Gunakan menu Backup secara berkala.</footer>
+</div>
+
+<nav class="bottom-nav" aria-label="Navigasi utama">
+  <button class="bn-item nav-item" data-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Beranda</span></button>
+  <button class="bn-item nav-item" data-view="semua"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>Semua</span></button>
+  <button class="bn-fab" id="bnAdd" aria-label="Tambah pengingat">+</button>
+  <button class="bn-item nav-item" data-view="lewat"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span>Tindakan</span></button>
+  <button class="bn-item nav-item" data-view="ringkasan"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>Ringkasan</span></button>
+</nav>
+
+<div class="overlay" id="backupOverlay">
+  <div class="modal backup-modal">
+    <h2>Backup &amp; Pulihkan Data</h2>
+    <p>Semua data (pengingat, grup, riwayat, pengaturan) disimpan ke <b>satu file</b> bernama <b>pengingat-backup.json</b>. Di Chrome/Edge komputer, file yang sama otomatis ditimpa. Di HP, file diunduh dengan nama tetap.</p>
+    <p class="hint" id="bkInfo" style="margin:10px 0 0;"></p>
+    <p class="hint" id="persistStatus" style="margin:6px 0 0;"></p>
+    <div class="field" style="margin-top:12px;"><label class="check-row"><input type="checkbox" id="bkIncludeVault" checked> Sertakan data Brankas</label><div class="hint" id="bkVaultHint">File cadangan tidak terenkripsi. Jika berisi Brankas, simpan di tempat aman dan jangan dibagikan.</div></div>
+    <div class="field"><label class="check-row"><input type="checkbox" id="bkEncrypt"> 🔐 Enkripsi file cadangan dengan kata sandi</label>
+      <div class="enc-note" id="bkEncNote">Aktifkan agar file cadangan tidak bisa dibaca tanpa kata sandi (AES-256-GCM). Kata sandi tidak disimpan; jika lupa, cadangan tidak bisa dibuka.</div></div>
+    <div class="backup-actions">
+      <button class="btn-primary" id="btnExport">Simpan Cadangan (.json)</button>
+      <label class="file-label" for="fileImport">Pulihkan dari File Backup</label>
+      <input type="file" id="fileImport" accept=".json" style="display:none;">
+      <button class="btn-ghost" id="btnCloseBackup">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="modal backup-modal">
+    <h2>Pengaturan</h2>
+    <div class="field">
+      <label class="check-row"><input type="checkbox" id="fSuara"> Bunyikan alarm saat jatuh tempo</label>
+    </div>
+    <div class="field">
+      <label for="fHariDefault">Default hari peringatan (pengingat baru)</label>
+      <input type="number" id="fHariDefault" min="0" value="7">
+    </div>
+    <div class="field">
+      <label for="fTema">Tema tampilan</label>
+      <select id="fTema">
+        <option value="auto">Otomatis (ikuti HP)</option>
+        <option value="light">Terang</option>
+        <option value="dark">Gelap</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="fTahap">Tahap pengingat (hari sebelum jatuh tempo)</label>
+      <input type="text" id="fTahap" placeholder="30, 7, 1">
+      <div class="hint">Pisahkan dengan koma. Hanya tahap di dalam rentang peringatan tiap pengingat yang dipakai. Alarm berbunyi mulai H-7; tahap lebih awal hanya notifikasi.</div>
+    </div>
+    <div class="field">
+      <label class="check-row"><input type="checkbox" id="fJamAktif"> Bunyikan peringatan pada jam tetap</label>
+      <input type="time" id="fJam" value="08:00" style="margin-top:8px;">
+      <div class="hint">Peringatan tahap (mis. H-30, H-7, H-1) baru berbunyi pada jam ini di hari tahap itu tercapai. Alarm saat lewat tempo tetap berbunyi tepat pada jam jatuh tempo.</div>
+    </div>
+    <div class="field">
+      <label for="fSnooze">Lama tunda alarm (snooze)</label>
+      <select id="fSnooze">
+        <option value="5">5 menit</option><option value="10">10 menit</option><option value="15">15 menit</option>
+        <option value="30">30 menit</option><option value="60">1 jam</option>
+      </select>
+    </div>
+    <div class="backup-actions">
+      <button class="btn-primary" id="btnSaveSettings">Simpan</button>
+      <button class="btn-ghost" id="btnResetAll" style="color:var(--red);">Hapus Semua Data</button>
+      <button class="btn-ghost" id="btnCloseSettings">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="aboutOverlay">
+  <div class="modal backup-modal">
+    <h2>Bantuan &amp; Tentang</h2>
+    <p>Pengingat Dokumen membantu memantau masa berlaku STNK, SIM, BPJS, tagihan, dan tanggal penting lainnya.</p>
+    <ul class="about-list">
+      <li>Tambah pengingat lewat tombol ➕, atur berapa hari sebelum jatuh tempo alarm berbunyi.</li>
+      <li>Pilih &quot;Berulang&quot; untuk tagihan bulanan atau dokumen tahunan.</li>
+      <li><b>Perlu Tindakan</b> menampilkan yang sudah segera, mendesak, atau lewat tempo.</li>
+      <li>Data hanya tersimpan di perangkat ini. Rutin gunakan Backup &amp; Pulihkan.</li>
+      <li><b>Brankas Dokumen</b> menyimpan nomor STNK, SIM, KTP, polis, dan lainnya; isinya disembunyikan sampai kamu menampilkannya.</li>
+      <li><b>Daftar periksa</b> per pengingat, <b>Catat Pembayaran</b> saat lunas, dan grafik pengeluaran di Ringkasan. Pengulangan bisa mingguan sampai 5 tahunan, atau kustom.</li>
+      <li><b>Tombol kembali</b> tidak langsung keluar: akan muncul pilihan tetap di sini atau keluar.</li>
+      <li><b>Batalkan</b>: setelah menghapus, menandai selesai, atau menjadwalkan ulang, ketuk "Batalkan" di bagian bawah layar dalam 7 detik.</li>
+      <li><b>Laporan PDF</b> dan <b>Kalender</b> ada di menu samping.</li>
+      <li><b>Tunda &amp; Jadwalkan Ulang</b>: saat alarm berbunyi, ketuk Tunda untuk membunyikan lagi nanti, atau Jadwalkan Ulang untuk memindahkan tanggal jatuh tempo.</li>
+      <li><b>Enkripsi cadangan</b>: centang di menu Backup &amp; Pulihkan agar file cadangan dikunci kata sandi.</li>
+      <li><b>Keamanan &amp; Kunci</b> mengaktifkan PIN 6 digit dan sidik jari (butuh HTTPS). Jika lupa PIN, aplikasi harus direset.</li>
+    </ul>
+    <p style="margin-top:12px;font-size:12px;">Versi 2.1</p>
+    <div class="backup-actions"><button class="btn-ghost" id="btnCloseAbout">Tutup</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="grupOverlay">
+  <div class="modal backup-modal">
+    <h2 id="grupTitle">Tambah Grup</h2>
+    <input type="hidden" id="grupEditNama">
+    <div class="field">
+      <label for="fGrupNama">Nama grup</label>
+      <input type="text" id="fGrupNama" maxlength="30" placeholder="Contoh: Asuransi">
+    </div>
+    <div class="field">
+      <label>Ikon</label>
+      <div class="emoji-pick" id="emojiPick"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnGrupBatal">Batal</button>
+      <button class="btn-primary" id="btnGrupSimpan">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="lock-screen" id="lockScreen" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
+  <div class="lock-box">
+    <div class="lock-ic">🔒</div>
+    <div class="lock-title" id="lockTitle">Terkunci</div>
+    <div class="lock-sub" id="lockSub"></div>
+    <div class="pin-dots" id="pinDots" aria-hidden="true"></div>
+    <div class="lock-msg" id="lockMsg" role="alert"></div>
+    <div class="keypad" id="keypad"></div>
+    <button class="btn-ghost lock-bio" id="btnBio" style="display:none;">👆 Gunakan Sidik Jari</button>
+    <button class="lock-link" id="btnLockCancel" style="display:none;">Batal</button>
+    <button class="lock-link" id="btnLupaPin" style="display:none;">Lupa PIN?</button>
+  </div>
+</div>
+
+<div class="overlay" id="keamananOverlay">
+  <div class="modal backup-modal">
+    <h2>Keamanan &amp; Kunci</h2>
+    <p id="kStatus"></p>
+    <div class="backup-actions" style="margin-top:12px;">
+      <button class="btn-primary" id="btnKAktif">Aktifkan Kunci PIN</button>
+    </div>
+    <div id="kOpsi" style="display:none;">
+      <div class="backup-actions" style="margin-top:10px;">
+        <button class="btn-ghost" id="btnKUbah">Ubah PIN</button>
+        <button class="btn-ghost" id="btnKBio">Daftarkan Sidik Jari</button>
+      </div>
+      <p class="hint" id="kBioHint"></p>
+      <div class="field" style="margin-top:16px;">
+        <label for="fAutoLock">Kunci otomatis</label>
+        <select id="fAutoLock">
+          <option value="0">Segera saat aplikasi ditinggalkan</option>
+          <option value="1">Setelah 1 menit tidak aktif</option>
+          <option value="5">Setelah 5 menit tidak aktif</option>
+          <option value="15">Setelah 15 menit tidak aktif</option>
+          <option value="30">Setelah 30 menit tidak aktif</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="check-row"><input type="checkbox" id="fGateVault"> Minta verifikasi ulang saat membuka Brankas</label>
+        <div class="hint">Jika terakhir verifikasi lebih dari 2 menit lalu, Brankas meminta PIN atau sidik jari lagi.</div>
+      </div>
+      <button class="btn-ghost" id="btnKLockNow" style="width:100%;">🔒 Kunci Sekarang</button>
+    </div>
+    <p class="hint" style="margin-top:16px;">Kunci PIN mencegah orang lain yang memegang perangkatmu membuka aplikasi. Data tetap tersimpan di browser tanpa enkripsi, dan file cadangan hanya terenkripsi jika kamu mengaktifkannya di menu Backup &amp; Pulihkan. Sidik jari diverifikasi oleh perangkatmu (WebAuthn) dan butuh HTTPS. Jika lupa PIN, satu-satunya jalan adalah reset yang menghapus semua data, jadi rutin simpan cadangan.</p>
+    <div class="backup-actions"><button class="btn-ghost" id="btnKTutup">Tutup</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="brankasOverlay">
+  <div class="modal">
+    <h2 id="brankasTitle">Tambah Dokumen Brankas</h2>
+    <input type="hidden" id="bEditId">
+    <div class="field" id="bTplWrap">
+      <label for="bTpl">Mulai dari templat (opsional)</label>
+      <select id="bTpl"></select>
+    </div>
+    <div class="field">
+      <label for="bNama">Nama dokumen</label>
+      <input type="text" id="bNama" maxlength="80" placeholder="Contoh: STNK Motor Vario">
+    </div>
+    <div class="field">
+      <label for="bKat">Kategori</label>
+      <select id="bKat"></select>
+    </div>
+    <div class="field">
+      <label for="bPemilik">Atas nama (opsional)</label>
+      <input type="text" id="bPemilik" maxlength="80" placeholder="Contoh: Budi Santoso">
+    </div>
+    <div class="field">
+      <label for="bPenerbit">Instansi penerbit (opsional)</label>
+      <input type="text" id="bPenerbit" maxlength="80" placeholder="Contoh: Samsat Kota Cirebon">
+    </div>
+    <div class="field">
+      <label for="bTerbit">Tanggal terbit (opsional)</label>
+      <input type="date" id="bTerbit">
+    </div>
+    <div class="field">
+      <label for="bBerlaku">Berlaku sampai (opsional)</label>
+      <input type="date" id="bBerlaku">
+    </div>
+    <div class="field">
+      <label>Data &amp; nomor</label>
+      <div id="bRows"></div>
+      <button type="button" class="btn-ghost" id="bAddRow" style="width:100%;">+ Tambah kolom</button>
+      <div class="hint">Isi kolom ini disembunyikan secara default di daftar. Ketuk ikon mata untuk melihat, ikon salin untuk menyalin.</div>
+    </div>
+    <div class="field">
+      <label for="bReminder">Terkait pengingat (opsional)</label>
+      <select id="bReminder"></select>
+    </div>
+    <div class="field">
+      <label for="bCatatan">Catatan (opsional)</label>
+      <textarea id="bCatatan" placeholder="Contoh: Asli disimpan di lemari kantor"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnBCancel">Batal</button>
+      <button class="btn-primary" id="btnBSave">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="exitOverlay">
+  <div class="modal backup-modal">
+    <h2>Keluar dari aplikasi?</h2>
+    <p id="exitMsg">Data pengingat kamu tetap aman tersimpan.</p>
+    <div class="backup-actions">
+      <button class="btn-primary" id="btnExitCancel">Tetap di Sini</button>
+      <button class="btn-ghost" id="btnExitBackup" style="display:none;">💾 Cadangkan Dulu</button>
+      <button class="btn-ghost" id="btnExitConfirm" style="color:var(--red);">Ya, Keluar</button>
+    </div>
+  </div>
+</div>
+
+ <div id="undoToast" role="status" aria-live="polite"><span id="undoTxt"></span><button id="undoBtn">Batalkan</button></div>
+
+<div class="overlay" id="payOverlay">
+  <div class="modal backup-modal">
+    <h2>Catat Pembayaran</h2>
+    <p id="payInfo"></p>
+    <div class="field" style="margin-top:12px;"><label for="payJumlah">Jumlah dibayar (Rp)</label><input type="number" id="payJumlah" min="0" step="1000" inputmode="numeric"></div>
+    <div class="field"><label for="payTgl">Tanggal bayar</label><input type="date" id="payTgl"></div>
+    <div class="hint">Tercatat di riwayat pembayaran dan grafik di menu Ringkasan.</div>
+    <div class="modal-actions" style="margin-top:12px;"><button class="btn-ghost" id="payBatal">Batal</button><button class="btn-primary" id="paySimpan">Simpan &amp; Tandai Lunas</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="pdfOverlay">
+  <div class="modal backup-modal">
+    <h2>Laporan PDF</h2>
+    <p>Buat laporan rapi untuk dicetak atau disimpan sebagai PDF. Data Brankas tidak ikut dicetak.</p>
+    <div class="field" style="margin-top:12px;"><label for="pdfScope">Isi laporan</label>
+      <select id="pdfScope">
+        <option value="aktif">Semua pengingat aktif</option>
+        <option value="tindakan">Perlu tindakan (segera, mendesak, lewat)</option>
+        <option value="30">Jatuh tempo 30 hari ke depan</option>
+        <option value="90">Jatuh tempo 90 hari ke depan</option>
+        <option value="semua">Semua, termasuk yang selesai</option>
+      </select></div>
+    <div class="field"><label for="pdfJudul">Judul laporan</label><input type="text" id="pdfJudul" maxlength="60" value="Laporan Pengingat Dokumen"></div>
+    <div class="field"><label for="pdfOleh">Disiapkan oleh (opsional)</label><input type="text" id="pdfOleh" maxlength="60" placeholder="Nama kamu"></div>
+    <div class="field"><label class="check-row"><input type="checkbox" id="pdfCatatan" checked> Sertakan catatan</label></div>
+    <div class="hint">Di jendela cetak, pilih <b>Simpan sebagai PDF</b> sebagai printer.</div>
+    <div class="modal-actions" style="margin-top:12px;"><button class="btn-ghost" id="pdfBatal">Batal</button><button class="btn-primary" id="pdfBuat">Buat Laporan</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="passOverlay" style="z-index:140;">
+  <div class="modal backup-modal">
+    <h2 id="passTitle">Kata sandi</h2>
+    <p id="passMsg"></p>
+    <div class="field" style="margin-top:12px;"><label for="passIn1">Kata sandi</label><input type="password" id="passIn1" autocomplete="off"></div>
+    <div class="field" id="passField2"><label for="passIn2">Ulangi kata sandi</label><input type="password" id="passIn2" autocomplete="off"></div>
+    <div class="hint" id="passErr" style="color:var(--red);min-height:16px;"></div>
+    <div class="modal-actions"><button class="btn-ghost" id="passCancel">Batal</button><button class="btn-primary" id="passOk">Lanjut</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="reschedOverlay" style="z-index:140;">
+  <div class="modal backup-modal">
+    <h2>Jadwalkan Ulang</h2>
+    <p id="reschedInfo"></p>
+    <input type="hidden" id="reschedId">
+    <div class="chip-row" id="reschedChips">
+      <button type="button" class="btn-ghost" data-h="1">+1 jam</button>
+      <button type="button" class="btn-ghost" data-d="1">+1 hari</button>
+      <button type="button" class="btn-ghost" data-d="3">+3 hari</button>
+      <button type="button" class="btn-ghost" data-d="7">+1 minggu</button>
+      <button type="button" class="btn-ghost" data-m="1">+1 bulan</button>
+    </div>
+    <div class="field"><label for="reschedTgl">Tanggal &amp; jam baru</label><input type="datetime-local" id="reschedTgl"></div>
+    <div class="hint" id="reschedHint"></div>
+    <div class="modal-actions" style="margin-top:12px;"><button class="btn-ghost" id="reschedBatal">Batal</button><button class="btn-primary" id="reschedSimpan">Simpan</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Tambah Pengingat</h2>
+    <input type="hidden" id="editId">
+    <div class="field">
+      <label for="fNama" id="lblNama">Nama dokumen</label>
+      <input type="text" id="fNama" placeholder="Contoh: STNK Motor Vario">
+    </div>
+    <div class="field">
+      <label for="fGrup">Grup</label>
+      <input type="text" id="fGrup" list="grupList" placeholder="Contoh: STNK, SIM, BPJS, WiFi, Ulang Tahun">
+      <datalist id="grupList"></datalist>
+    </div>
+    <div class="field">
+      <label for="fPemilik">Pemilik / anggota (opsional)</label>
+      <select id="fPemilik"><option value="">— Tanpa pemilik —</option></select>
+      <div class="hint">Atur daftar anggota di menu Anggota &amp; Profil.</div>
+    </div>
+    <div class="field">
+      <label for="fUlang">Berulang?</label>
+      <select id="fUlang">
+        <option value="tidak">Tidak berulang</option>
+        <option value="mingguan">Tiap minggu</option>
+        <option value="2mingguan">Tiap 2 minggu</option>
+        <option value="bulanan">Tiap bulan</option>
+        <option value="2bulan">Tiap 2 bulan</option>
+        <option value="3bulan">Tiap 3 bulan</option>
+        <option value="6bulan">Tiap 6 bulan</option>
+        <option value="tahunan">Tiap tahun</option>
+        <option value="2tahun">Tiap 2 tahun</option>
+        <option value="5tahun">Tiap 5 tahun (mis. SIM)</option>
+        <option value="kustom">Kustom…</option>
+      </select>
+      <div class="pw-box" id="ulangKustom" style="display:none;margin-top:8px;">
+        <span>Setiap</span>
+        <input type="number" id="fUlangN" min="1" max="999" value="1" style="width:84px;">
+        <select id="fUlangUnit" style="flex:1;"><option value="d">hari</option><option value="w">minggu</option><option value="m">bulan</option><option value="y">tahun</option></select>
+      </div>
+      <div class="hint">Kalau berulang, tanggal otomatis maju ke siklus berikutnya saat ditandai lunas/diperpanjang. Tanggal akhir bulan (mis. 31) dijaga tiap bulan; Februari menjadi 28/29.</div>
+    </div>
+    <div class="field">
+      <label for="fTanggal" id="lblTanggal">Tanggal &amp; jam habis / jatuh tempo</label>
+      <input type="datetime-local" id="fTanggal">
+    </div>
+    <div class="field">
+      <label for="fHari" id="lblHari">Ingatkan berapa hari sebelum habis?</label>
+      <input type="number" id="fHari" min="0" value="7">
+      <div class="hint">Peringatan pertama muncul di sini. Tahap lanjutan (mis. 30, 7, 1 hari sebelumnya) mengikuti Pengaturan.</div>
+    </div>
+    <div class="field">
+      <label for="fBiaya">Estimasi biaya perpanjangan / tagihan (Rp, opsional)</label>
+      <input type="number" id="fBiaya" min="0" step="1000" placeholder="Contoh: 250000">
+    </div>
+    <div class="field">
+      <label>Daftar periksa (opsional)</label>
+      <div id="fChkList"></div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-ghost" id="chkAdd" style="flex:1;">+ Tambah butir</button>
+        <button type="button" class="btn-ghost" id="chkTpl" style="flex:1;">Isi contoh</button>
+      </div>
+      <div class="hint">Langkah yang perlu disiapkan, mis. bawa KTP asli. Dicentang dari kartu; otomatis dikosongkan saat siklus berulang maju.</div>
+    </div>
+    <div class="field">
+      <label for="fCatatan">Catatan (opsional)</label>
+      <textarea id="fCatatan" placeholder="Contoh: Plat B 1234 XYZ, bawa KTP asli"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnCancel">Batal</button>
+      <button class="btn-primary" id="btnSave">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="profilOverlay">
+  <div class="modal backup-modal">
+    <h2 id="profilTitle">Tambah Anggota</h2>
+    <input type="hidden" id="profilEditId">
+    <div class="field">
+      <label for="fProfilNama">Nama</label>
+      <input type="text" id="fProfilNama" maxlength="30" placeholder="Contoh: Budi">
+    </div>
+    <div class="field">
+      <label for="fProfilHub">Keterangan (opsional)</label>
+      <input type="text" id="fProfilHub" maxlength="30" placeholder="Contoh: Suami, Anak, Motor Vario">
+      <div class="hint">Profil juga bisa dipakai untuk kendaraan atau rumah.</div>
+    </div>
+    <div class="field">
+      <label>Ikon</label>
+      <div class="emoji-pick" id="profilEmojiPick"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="btnProfilBatal">Batal</button>
+      <button class="btn-primary" id="btnProfilSimpan">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pengingat-dokumen-v1';
+let reminders = [];
+const SETTINGS_KEY = 'pengingat-pengaturan-v1';
+let settings = { suara: true, hariDefault: 7, tahap: [30, 7, 1], tema: 'auto', jamAktif: true, jamAlarm: '08:00', snoozeMenit: 10 };
+try{ Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); }catch(e){}
+const LOG_KEY = 'pengingat-riwayat-v1';
+let riwayat = [];
+try{ riwayat = JSON.parse(localStorage.getItem(LOG_KEY) || '[]'); }catch(e){}
+if(!Array.isArray(riwayat)) riwayat = [];
+function logAktivitas(jenis, teks){
+  riwayat.unshift({t: new Date().toISOString(), jenis, teks});
+  riwayat = riwayat.slice(0, 300);
+  try{ localStorage.setItem(LOG_KEY, JSON.stringify(riwayat)); }catch(e){}
+}
+const GRUP_KEY = 'pengingat-grup-v1';
+let grupData = [];
+function loadGrups(){
+  try{ grupData = JSON.parse(localStorage.getItem(GRUP_KEY) || 'null'); }catch(e){ grupData = null; }
+  if(!Array.isArray(grupData)) grupData = [{nama:'Ulang Tahun',emoji:'🎂'},{nama:'STNK',emoji:'🚗'},{nama:'SIM',emoji:'🪪'},{nama:'BPJS',emoji:'🏥'},{nama:'WiFi',emoji:'📶'}];
+}
+function saveGrups(){ try{ localStorage.setItem(GRUP_KEY, JSON.stringify(grupData)); }catch(e){} markChange(); }
+function allGrups(){
+  const list = grupData.slice();
+  const names = new Set(list.map(g=> g.nama.toLowerCase()));
+  reminders.forEach(r=>{
+    const n = r.grup || 'Lainnya';
+    if(!names.has(n.toLowerCase())){ names.add(n.toLowerCase()); list.push({nama:n, emoji:'🗂️'}); }
+  });
+  return list;
+}
+function grupEmoji(nama){
+  const g = grupData.find(x=> x.nama.toLowerCase() === String(nama || '').toLowerCase());
+  return g ? g.emoji : '🗂️';
+}
+function applyTheme(){
+  if(settings.tema === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', settings.tema);
+}
+applyTheme();
+
+function loadReminders(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    reminders = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    reminders = [];
+  }
+}
+function markChange(){ try{ localStorage.setItem('pengingat-last-change', String(Date.now())); }catch(e){} }
+function saveReminders(quiet){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders));
+  if(!quiet) markChange();
+}
+
+function uid(){
+  return 'r_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+// ---------- Alarm sound (Web Audio API, no external file) ----------
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return audioCtx;
+}
+function playBeepBurst(){
+  if(!settings.suara) return;
+  const ctx = getAudioCtx();
+  if(ctx.state === 'suspended') ctx.resume();
+  const now = ctx.currentTime;
+  const beepTimes = [0, 0.35, 0.7];
+  beepTimes.forEach(t=>{
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(880, now + t);
+    gain.gain.setValueAtTime(0, now + t);
+    gain.gain.linearRampToValueAtTime(0.25, now + t + 0.02);
+    gain.gain.linearRampToValueAtTime(0, now + t + 0.28);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + t);
+    osc.stop(now + t + 0.3);
+  });
+}
+let alarmLoopId = null;
+const alarmIds = new Set();
+const SNOOZE_KEY = 'pengingat-snooze-v1';
+let snooze = { until: 0, ids: [] };
+try{ const sv = JSON.parse(localStorage.getItem(SNOOZE_KEY) || 'null'); if(sv && Array.isArray(sv.ids)) snooze = sv; }catch(e){}
+function saveSnooze(){ try{ localStorage.setItem(SNOOZE_KEY, JSON.stringify(snooze)); }catch(e){} }
+let bkPassCache = null;
+// ---------- Undo (satu langkah terakhir) ----------
+let undoState = null;
+function cloneR(r){ return JSON.parse(JSON.stringify(r)); }
+function pushUndo(label, fn){
+  undoState = { fn, t: setTimeout(hideUndo, 7000) };
+  document.getElementById('undoTxt').textContent = label;
+  document.getElementById('undoToast').classList.add('show');
+}
+function hideUndo(){
+  if(undoState){ clearTimeout(undoState.t); undoState = null; }
+  document.getElementById('undoToast').classList.remove('show');
+}
+function undoRestoreFor(before){
+  return ()=>{ const i = reminders.findIndex(x => x.id === before.id); if(i >= 0) reminders[i] = before; else reminders.push(before); };
+}
+document.getElementById('undoBtn').addEventListener('click', ()=>{
+  if(!undoState) return;
+  const fn = undoState.fn; hideUndo();
+  fn(); saveReminders(); logAktivitas('edit', 'Membatalkan tindakan terakhir'); render(); showToast('Dibatalkan');
+});
+function updateAlarmBar(){
+  const txt = document.getElementById('alarmTxt');
+  const names = [...alarmIds].map(id => (reminders.find(r => r.id === id) || {}).nama).filter(Boolean);
+  if(!names.length) txt.textContent = '🔔 Ada pengingat jatuh tempo!';
+  else if(names.length === 1) txt.textContent = '🔔 ' + names[0];
+  else txt.textContent = '🔔 ' + names.length + ' pengingat: ' + names.slice(0,2).join(', ') + (names.length > 2 ? ', …' : '');
+  document.getElementById('btnSnoozeAlarm').textContent = '⏰ Tunda ' + (settings.snoozeMenit >= 60 ? '1 jam' : settings.snoozeMenit + ' mnt');
+  document.getElementById('btnReschedAlarm').style.display = names.length ? '' : 'none';
+}
+function startAlarm(id){
+  if(id) alarmIds.add(id);
+  updateAlarmBar();
+  document.getElementById('alarmBar').classList.add('show');
+  if(alarmLoopId) return;
+  playBeepBurst();
+  alarmLoopId = setInterval(playBeepBurst, 1500);
+}
+function stopAlarm(){
+  if(alarmLoopId){
+    clearInterval(alarmLoopId);
+    alarmLoopId = null;
+  }
+  document.getElementById('alarmBar').classList.remove('show');
+}
+// Matikan: hentikan bunyi dan lupakan alarm ini
+function dismissAlarm(){
+  stopAlarm();
+  alarmIds.clear();
+  snooze = { until: 0, ids: [] }; saveSnooze();
+}
+// Tunda: diam sekarang, bunyi lagi setelah N menit kalau belum ditangani
+function snoozeAlarm(){
+  const menit = Math.max(1, parseInt(settings.snoozeMenit, 10) || 10);
+  stopAlarm();
+  snooze = { until: Date.now() + menit * 60000, ids: [...new Set([...(snooze.ids || []), ...alarmIds])] };
+  alarmIds.clear();
+  saveSnooze();
+  showToast('Alarm ditunda ' + (menit >= 60 ? '1 jam' : menit + ' menit'));
+}
+function forgetAlarmFor(id){
+  alarmIds.delete(id);
+  snooze.ids = (snooze.ids || []).filter(x => x !== id);
+  if(!snooze.ids.length) snooze.until = 0;
+  saveSnooze();
+  if(!alarmIds.size && !document.getElementById('alarmBar').classList.contains('test')) stopAlarm(); else updateAlarmBar();
+}
+function checkSnooze(now){
+  if(!snooze.until || now < snooze.until) return;
+  const ids = (snooze.ids || []).filter(id => { const r = reminders.find(x => x.id === id); return r && !r.selesai; });
+  snooze = { until: 0, ids: [] }; saveSnooze();
+  if(!ids.length) return;
+  const nama = (reminders.find(x => x.id === ids[0]) || {}).nama || 'pengingat';
+  fireNotification('Tunda berakhir: ' + nama, ids.length > 1 ? ids.length + ' pengingat masih menunggu tindakan.' : nama + ' masih menunggu tindakan.');
+  ids.forEach(id => startAlarm(id));
+}
+document.getElementById('btnStopAlarm').addEventListener('click', dismissAlarm);
+document.getElementById('btnSnoozeAlarm').addEventListener('click', snoozeAlarm);
+document.getElementById('btnReschedAlarm').addEventListener('click', ()=>{
+  const id = [...alarmIds][0];
+  if(id) openResched(id);
+});
+
+// ---------- Notifications ----------
+function updateNotifBanner(){
+  const banner = document.getElementById('notifBanner');
+  if(!('Notification' in window)){
+    banner.classList.add('ok');
+    return;
+  }
+  if(Notification.permission === 'granted'){
+    banner.classList.add('ok');
+  }else{
+    banner.classList.remove('ok');
+  }
+}
+document.getElementById('btnEnableNotif').addEventListener('click', ()=>{
+  if('Notification' in window){
+    Notification.requestPermission().then(updateNotifBanner);
+  }
+});
+function fireNotification(title, body){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const opts = {
+    body,
+    icon:'icons/icon-192.png',
+    badge:'icons/icon-192.png',
+    vibrate:[300,150,300,150,300,150,300],
+    requireInteraction: true,
+    tag: 'pengingat-' + title
+  };
+  if(navigator.serviceWorker && navigator.serviceWorker.controller){
+    navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIF', title, body, opts});
+  }else if(navigator.serviceWorker){
+    navigator.serviceWorker.ready.then(reg=>{
+      reg.showNotification(title, opts);
+    }).catch(()=>{ try{ new Notification(title, opts); }catch(e){} });
+  }else{
+    try{ new Notification(title, opts); }catch(e){}
+  }
+}
+
+// ---------- Countdown math ----------
+function breakdown(msDiff){
+  const totalSec = Math.max(0, Math.floor(msDiff/1000));
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+  const months = Math.floor(days / 30);
+  const weeksAfterMonths = Math.floor((days % 30) / 7);
+  return {days, hours, minutes, seconds, months, weeksAfterMonths};
+}
+
+function statusOf(reminder, now){
+  if(reminder.selesai) return {level:'selesai', color:'var(--green)', label:'Selesai'};
+  const target = new Date(reminder.tanggal).getTime();
+  const diff = target - now;
+  if(diff <= 0) return {level:'lewat', color:'var(--red)', label:'Lewat tempo'};
+  const warnMs = reminder.hariPeringatan * 86400000;
+  if(diff <= warnMs){
+    // within warning window: escalate color as it gets closer (last 20% of window = urgent)
+    if(diff <= warnMs * 0.25 || diff <= 86400000){
+      return {level:'mendesak', color:'var(--red)', label:'Mendesak'};
+    }
+    return {level:'segera', color:'var(--amber)', label:'Segera'};
+  }
+  return {level:'aman', color:'var(--green)', label:'Aman'};
+}
+
+const fmtRp = n => 'Rp ' + Number(n).toLocaleString('id-ID');
+const SORTS = {
+  terdekat: (a,b)=> new Date(a.tanggal) - new Date(b.tanggal),
+  terjauh:  (a,b)=> new Date(b.tanggal) - new Date(a.tanggal),
+  az: (a,b)=> a.nama.localeCompare(b.nama, 'id'),
+  za: (a,b)=> b.nama.localeCompare(a.nama, 'id')
+};
+let sortMode = 'terdekat';
+let statusFilter = 'semua';
+// Waktu tahap peringatan t (hari) berbunyi; kalau "jam tetap" aktif, pada jam itu di hari tahap tercapai
+function tierTime(r, t){
+  const due = new Date(r.tanggal).getTime();
+  let at = due - t * 86400000;
+  if(settings.jamAktif && /^\d{1,2}:\d{2}$/.test(settings.jamAlarm || '')){
+    const [h, m] = settings.jamAlarm.split(':').map(Number);
+    const d = new Date(at); d.setHours(h, m, 0, 0); at = d.getTime();
+  }
+  return Math.min(at, due);
+}
+function tierReached(r, t, now){ return now >= tierTime(r, t); }
+function tiersFor(r){
+  const w = r.hariPeringatan;
+  const extra = (settings.tahap || []).filter(d => d < w);
+  return [...new Set([w, ...extra])].filter(d => d > 0).sort((a,b)=> b - a);
+}
+function biaya30(now){
+  return reminders.filter(r => !r.selesai && r.biaya && new Date(r.tanggal) - now <= 30*86400000)
+    .reduce((t,r)=> t + r.biaya, 0);
+}
+const ULANG_LABEL = { tidak: 'Tidak berulang', mingguan: 'Berulang tiap minggu', '2mingguan': 'Berulang tiap 2 minggu', bulanan: 'Berulang tiap bulan',
+  '2bulan': 'Berulang tiap 2 bulan', '3bulan': 'Berulang tiap 3 bulan', '6bulan': 'Berulang tiap 6 bulan', tahunan: 'Berulang tiap tahun',
+  '2tahun': 'Berulang tiap 2 tahun', '5tahun': 'Berulang tiap 5 tahun' };
+const RECUR = { mingguan:{n:1,u:'w'}, '2mingguan':{n:2,u:'w'}, bulanan:{n:1,u:'m'}, '2bulan':{n:2,u:'m'}, '3bulan':{n:3,u:'m'}, '6bulan':{n:6,u:'m'},
+  tahunan:{n:1,u:'y'}, '2tahun':{n:2,u:'y'}, '5tahun':{n:5,u:'y'} };
+const UNIT_LABEL = { d:'hari', w:'minggu', m:'bulan', y:'tahun' };
+function recurOf(r){
+  if(r.ulang === 'kustom') return { n: Math.max(1, parseInt(r.ulangN, 10) || 1), u: UNIT_LABEL[r.ulangUnit] ? r.ulangUnit : 'm' };
+  return RECUR[r.ulang] || null;
+}
+function ulangLabel(r){
+  if(r.ulang === 'kustom'){ const c = recurOf(r); return 'Berulang tiap ' + c.n + ' ' + UNIT_LABEL[c.u]; }
+  return ULANG_LABEL[r.ulang] || ULANG_LABEL.tidak;
+}
+function addCycle(tanggalLocal, ulang, r){
+  const rc = recurOf(Object.assign({}, r || {}, { ulang }));
+  const d = new Date(tanggalLocal);
+  if(rc){
+    if(rc.u === 'd') d.setDate(d.getDate() + rc.n);
+    else if(rc.u === 'w') d.setDate(d.getDate() + 7 * rc.n);
+    else{
+      const months = rc.u === 'y' ? rc.n * 12 : rc.n;
+      const anchor = (r && r.anchorDay) || d.getDate();
+      const t = new Date(d.getFullYear(), d.getMonth() + months, 1, d.getHours(), d.getMinutes());
+      t.setDate(Math.min(anchor, new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()));
+      d.setTime(t.getTime());
+    }
+  }
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function refreshGrupList(){
+  document.getElementById('grupList').innerHTML = allGrups().map(g=>`<option value="${escapeHtml(g.nama)}"></option>`).join('');
+}
+
+// ---------- Rendering ----------
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleString('id-ID', {
+    day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+
+function fmtShort(iso){
+  return new Date(iso).toLocaleString('id-ID', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+function relText(r, diff){
+  if(r.selesai) return 'Selesai';
+  const abs = Math.abs(diff);
+  const d = Math.floor(abs / 86400000), h = Math.floor(abs % 86400000 / 3600000), m = Math.floor(abs % 3600000 / 60000);
+  const t = d >= 1 ? d + ' hari' : h >= 1 ? h + ' jam' : m + ' mnt';
+  return diff <= 0 ? 'Lewat ' + t : t + ' lagi';
+}
+function heroHtml(now){
+  const aktif = reminders.filter(r=>!r.selesai);
+  const c = {lewat:0, segera:0, aman:0};
+  aktif.forEach(r=>{ const l = statusOf(r, now).level; if(l === 'lewat') c.lewat++; else if(l === 'aman') c.aman++; else c.segera++; });
+  const perlu = c.lewat + c.segera;
+  const next = aktif.slice().sort(SORTS.terdekat)[0];
+  const hari = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long'});
+  return `<div class="hero"><div class="hero-k">${hari}</div>
+    <div class="hero-t">${perlu ? perlu + ' perlu tindakan' : 'Semua aman 👍'}</div>
+    <div class="hero-s">${aktif.length} pengingat aktif${next ? ' · terdekat: ' + escapeHtml(next.nama) : ''}</div>
+    <div class="hero-chips"><span class="chip"><i style="background:#FF8A8D"></i>${c.lewat} lewat tempo</span><span class="chip"><i style="background:#FBBF5B"></i>${c.segera} segera</span><span class="chip"><i style="background:#6EE7A0"></i>${c.aman} aman</span></div>
+  </div><div class="sec-t">Terdekat</div>`;
+}
+
+function cardTemplate(r){
+  const g = r.grup || 'Lainnya';
+  return `
+    <div class="card" data-id="${r.id}" style="--status-color:var(--green)">
+      <div class="card-main">
+        <div class="c-ic">${grupEmoji(g)}</div>
+        <div class="c-tx">
+          <div class="card-title">${escapeHtml(r.nama)}</div>
+          <div class="card-date">${escapeHtml(g)}${pemilikTag(r)} · ${fmtShort(r.tanggal)}</div>
+        </div>
+        <div class="c-right"><div class="rel rel-el">--</div><div class="badge badge-el">...</div></div>
+      </div>
+      <div class="card-detail">
+        <div class="countdown countdown-el">
+          <div class="unit"><div class="num">--</div><div class="lbl">Bulan</div></div>
+          <div class="unit"><div class="num">--</div><div class="lbl">Minggu</div></div>
+          <div class="unit"><div class="num">--</div><div class="lbl">Hari</div></div>
+          <div class="unit"><div class="num">--</div><div class="lbl">Jam</div></div>
+          <div class="unit"><div class="num">--</div><div class="lbl">Menit</div></div>
+          <div class="unit"><div class="num">--</div><div class="lbl">Detik</div></div>
+        </div>
+        <div class="approx approx-el"></div>
+        <div class="repeat-tag">${ulangLabel(r)}</div>
+        ${r.biaya ? `<div class="card-cost">Estimasi biaya: ${fmtRp(r.biaya)}</div>` : ''}
+        ${r.catatan ? `<div class="card-note">${escapeHtml(r.catatan)}</div>` : ''}
+        ${(r.checklist || []).length ? `<div class="ph-title">Daftar periksa <span class="chk-prog">${r.checklist.filter(c=>c.d).length}/${r.checklist.length}</span></div>`
+          + r.checklist.map((c,i)=>`<label class="chk-row"><input type="checkbox" class="chk-box" data-i="${i}" ${c.d ? 'checked' : ''}><span>${escapeHtml(c.t)}</span></label>`).join('') : ''}
+        ${(r.bayar || []).length ? `<div class="ph-title">Riwayat pembayaran <span>${r.bayar.length}x</span></div>`
+          + r.bayar.slice(-4).reverse().map(b=>`<div class="pay-row"><span>${escapeHtml(new Date(b.t).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}))}<br><small>untuk jatuh tempo ${escapeHtml(b.due ? fmtShort(b.due) : '-')}</small></span><b>${b.jumlah ? fmtRp(b.jumlah) : '–'}</b></div>`).join('') : ''}
+        <div class="card-actions">
+          <button class="icon-btn done-btn">${r.selesai ? 'Aktifkan Lagi' : (r.ulang === 'tidak' ? 'Tandai Selesai' : 'Tandai Lunas / Diperpanjang')}</button>
+          ${r.selesai ? '' : '<button class="icon-btn resched-btn">🗓️ Jadwalkan Ulang</button>'}
+          <button class="icon-btn edit-btn">Edit</button>
+          <button class="icon-btn danger del-btn">Hapus</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+let activeGrup = 'Semua';
+let searchQuery = '';
+let currentView = 'dashboard'; // 'dashboard' | 'semua' | 'bulanan' | 'grup:<Nama>'
+
+const VIEW_LABELS = {
+  dashboard: '3 Pengingat Terdekat',
+  semua: 'Semua Pengingat',
+  bulanan: 'Tagihan Bulanan',
+  ringkasan: 'Ringkasan',
+  kalender: 'Kalender',
+  kelola: 'Kelola Grup',
+  riwayat: 'Riwayat Aktivitas',
+  lewat: 'Perlu Tindakan',
+  brankas: 'Brankas Dokumen',
+  selesai: 'Arsip Selesai',
+  pembayaran: 'Riwayat Pembayaran',
+  anggaran: 'Anggaran & Proyeksi',
+  profil: 'Anggota & Profil'
+};
+
+function viewLabel(view){
+  if(view.startsWith('grup:')) return view.slice(5);
+  if(view.startsWith('pemilik:')){ const pf = profilById(view.slice(8)); return pf ? pf.nama : 'Pemilik'; }
+  return VIEW_LABELS[view] || 'Pengingat';
+}
+
+function viewAddLabel(view){
+  if(['dashboard','semua','ringkasan','kalender','kelola','riwayat','lewat','selesai','brankas','pembayaran','anggaran','profil'].includes(view)) return '+ Tambah';
+  return '+ Tambah ' + viewLabel(view);
+}
+
+function setView(view, opts){
+  opts = opts || {};
+  currentView = view;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(!opts.silent){
+    history.pushState({view: view}, '');
+  }
+}
+
+function updateViewHeader(){
+  document.getElementById('viewTitle').textContent = viewLabel(currentView);
+  document.getElementById('viewAdd').textContent = viewAddLabel(currentView);
+  document.getElementById('viewBack').style.display = currentView === 'dashboard' ? 'none' : 'inline-block';
+  document.getElementById('tabs').style.display = currentView === 'semua' ? 'flex' : 'none';
+  document.querySelector('.view-header').style.display = currentView === 'dashboard' ? 'none' : 'flex';
+  const noSearch = ['dashboard','ringkasan','kalender','kelola','riwayat','pembayaran','anggaran','profil'].includes(currentView);
+  document.querySelector('.search-box').style.display = noSearch ? 'none' : '';
+  document.getElementById('toolbar').style.display = (noSearch || currentView === 'dashboard' || currentView === 'brankas') ? 'none' : 'flex';
+}
+
+function updateDrawerActive(){
+  document.querySelectorAll('.nav-item').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.view === currentView);
+  });
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  const grups = [...new Set(reminders.map(r=> r.grup || 'Lainnya'))].sort((a,b)=> a.localeCompare(b));
+  const names = ['Semua', ...grups];
+  tabsEl.innerHTML = names.map(g=>
+    `<button class="tab ${g===activeGrup ? 'active':''}" data-grup="${escapeHtml(g)}">${escapeHtml(g)}</button>`
+  ).join('');
+  tabsEl.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      activeGrup = btn.dataset.grup;
+      render();
+    });
+  });
+}
+
+function render(){
+  const list = document.getElementById('list');
+  refreshGrupList();
+  renderTabs();
+  updateViewHeader();
+  updateDrawerMeta();
+  updateDrawerActive();
+  bkRender();
+
+  if(currentView === 'kalender'){ renderKalender(list); return; }
+  if(currentView === 'brankas'){ renderBrankas(list); return; }
+  if(currentView === 'kelola'){ renderKelola(list); return; }
+  if(currentView === 'riwayat'){ renderRiwayat(list); return; }
+  if(currentView === 'pembayaran'){ renderPembayaran(list); return; }
+  if(currentView === 'anggaran'){ renderAnggaran(list); return; }
+  if(currentView === 'profil'){ renderProfil(list); return; }
+
+  if(reminders.length === 0){
+    list.innerHTML = '<div class="empty">Belum ada pengingat. Tambahkan dokumen pertamamu, misalnya STNK.</div>';
+    return;
+  }
+
+  const now = Date.now();
+  const q = searchQuery.trim().toLowerCase();
+
+  if(currentView === 'ringkasan'){
+    const c = {aman:0, segera:0, mendesak:0, lewat:0, selesai:0};
+    reminders.forEach(r=> c[statusOf(r, now).level]++);
+    const items = [['Total',reminders.length,'var(--blue)'],['Aman',c.aman,'var(--green)'],['Segera',c.segera,'var(--amber)'],['Mendesak',c.mendesak,'var(--red)'],['Lewat tempo',c.lewat,'var(--red)'],['Selesai',c.selesai,'var(--text-dim)']];
+    const byGrup = {};
+    reminders.forEach(r=>{ const g = r.grup || 'Lainnya'; byGrup[g] = (byGrup[g]||0) + 1; });
+    list.innerHTML = '<div class="stats">' + items.map(([l,n,col])=>`<div class="stat" style="--c:${col}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('') + '</div>'
+      + `<div class="grup-row"><span>Estimasi biaya ≤ 30 hari</span><span>${fmtRp(biaya30(now))}</span></div>`
+      + '<div class="drawer-divider" style="padding-left:0;">Per kategori</div>'
+      + Object.entries(byGrup).sort().map(([g,n])=>`<div class="grup-row"><span>${escapeHtml(g)}</span><span>${n}</span></div>`).join('');
+    list.insertAdjacentHTML('beforeend', ringkasanBayarHtml(now));
+    return;
+  }
+
+  let base;
+  if(currentView === 'dashboard'){
+    base = reminders.filter(r => !r.selesai);
+  }else if(currentView === 'bulanan'){
+    base = reminders.filter(r => r.ulang === 'bulanan');
+  }else if(currentView === 'lewat'){
+    base = reminders.filter(r => !r.selesai && ['lewat','mendesak','segera'].includes(statusOf(r, now).level));
+  }else if(currentView === 'selesai'){
+    base = reminders.filter(r => r.selesai);
+  }else if(currentView.startsWith('pemilik:')){
+    const pid = currentView.slice(8);
+    base = reminders.filter(r => r.pemilik === pid);
+  }else if(currentView.startsWith('grup:')){
+    const target = currentView.slice(5).toLowerCase();
+    base = reminders.filter(r => (r.grup || 'Lainnya').toLowerCase() === target);
+  }else{
+    base = reminders.filter(r => activeGrup === 'Semua' || (r.grup || 'Lainnya') === activeGrup);
+  }
+
+  const cmp = currentView === 'dashboard' ? SORTS.terdekat : SORTS[sortMode];
+  let filtered = base
+    .filter(r => !q || r.nama.toLowerCase().includes(q) || (r.grup || '').toLowerCase().includes(q) || (r.catatan || '').toLowerCase().includes(q))
+    .filter(r => currentView === 'dashboard' || statusFilter === 'semua' || statusOf(r, now).level === statusFilter)
+    .sort(cmp);
+
+  const totalActive = filtered.length;
+  if(currentView === 'dashboard'){
+    filtered = filtered.slice(0, 3);
+  }
+
+  if(filtered.length === 0){
+    const emptyMsgs = {
+      dashboard: 'Belum ada pengingat aktif. Tambahkan lewat tombol + Tambah di atas.',
+      semua: 'Tidak ada pengingat yang cocok.',
+      bulanan: 'Belum ada tagihan bulanan. Tambahkan dengan opsi "Berulang: Bulanan".',
+      lewat: 'Tidak ada pengingat yang perlu tindakan. Semua masih aman 👍',
+      selesai: 'Belum ada pengingat yang ditandai selesai.'
+    };
+    const msg = emptyMsgs[currentView] || `Belum ada pengingat di kategori "${viewLabel(currentView)}".`;
+    list.innerHTML = `<div class="empty">${escapeHtml(msg)}</div>`;
+    return;
+  }
+
+  list.innerHTML = (currentView === 'dashboard' ? heroHtml(now) : '') + filtered.map(cardTemplate).join('');
+  if(currentView === 'dashboard' && totalActive > 3){
+    list.innerHTML += `<button class="btn-ghost" id="btnLihatSemua" style="width:100%;">Lihat semua pengingat (${totalActive}) →</button>`;
+    document.getElementById('btnLihatSemua').addEventListener('click', ()=> setView('semua'));
+  }
+
+  list.querySelectorAll('.edit-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.target.closest('.card').dataset.id;
+      openModal(reminders.find(r=>r.id===id));
+    });
+  });
+  list.querySelectorAll('.chk-box').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const card = cb.closest('.card'), r = reminders.find(x=>x.id === card.dataset.id);
+      if(!r || !r.checklist || !r.checklist[+cb.dataset.i]) return;
+      r.checklist[+cb.dataset.i].d = cb.checked;
+      saveReminders();
+      card.querySelector('.chk-prog').textContent = r.checklist.filter(c=>c.d).length + '/' + r.checklist.length;
+    });
+  });
+  list.querySelectorAll('.resched-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=> openResched(e.target.closest('.card').dataset.id));
+  });
+  list.querySelectorAll('.del-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.target.closest('.card').dataset.id;
+      const r = reminders.find(x=>x.id===id);
+      if(!r) return;
+      const idx = reminders.findIndex(x=>x.id===id), copy = cloneR(r);
+      forgetAlarmFor(id);
+      logAktivitas('hapus', 'Menghapus pengingat "' + r.nama + '"');
+      reminders = reminders.filter(x=>x.id!==id);
+      saveReminders();
+      render();
+      pushUndo('Pengingat dihapus', ()=>{ reminders.splice(Math.min(idx, reminders.length), 0, copy); });
+    });
+  });
+  list.querySelectorAll('.done-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.target.closest('.card').dataset.id;
+      const r = reminders.find(x=>x.id===id);
+      if(!r) return;
+      if(r.selesai){
+        const before = cloneR(r);
+        logAktivitas('aktif', 'Mengaktifkan lagi "' + r.nama + '"'); r.selesai = false; r.alertStage = null; r.tierFired = null;
+        saveReminders(); render(); pushUndo('Diaktifkan lagi', undoRestoreFor(before)); return;
+      }
+      if(r.biaya) openPay(id); else completeReminder(id, null, new Date().toISOString());
+    });
+  });
+  tick();
+}
+
+document.getElementById('sortSel').addEventListener('change', (e)=>{ sortMode = e.target.value; render(); });
+document.getElementById('statusSel').addEventListener('change', (e)=>{ statusFilter = e.target.value; render(); });
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  searchQuery = e.target.value;
+  render();
+});
+
+function escapeHtml(s){
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function tick(){
+  const now = Date.now();
+  document.querySelectorAll('.card').forEach(card=>{
+    const id = card.dataset.id;
+    const r = reminders.find(x=>x.id===id);
+    if(!r) return;
+    const target = new Date(r.tanggal).getTime();
+    const diff = target - now;
+    const st = statusOf(r, now);
+    card.style.setProperty('--status-color', st.color);
+    card.classList.toggle('is-selesai', !!r.selesai);
+    const badge = card.querySelector('.badge-el');
+    badge.textContent = st.label;
+    card.querySelector('.rel-el').textContent = relText(r, diff);
+
+    if(r.selesai){
+      card.querySelector('.approx-el').textContent = 'Ditandai selesai. Edit tanggal kalau mau aktifkan lagi.';
+      return;
+    }
+
+    const nums = card.querySelectorAll('.countdown-el .num');
+    if(diff <= 0){
+      nums.forEach(n=> n.textContent = '0');
+      card.querySelector('.approx-el').textContent = 'Sudah lewat masa berlaku — segera perpanjang.';
+    }else{
+      const b = breakdown(diff);
+      nums[0].textContent = b.months;
+      nums[1].textContent = b.weeksAfterMonths;
+      nums[2].textContent = b.days % 7;
+      nums[3].textContent = String(b.hours).padStart(2,'0');
+      nums[4].textContent = String(b.minutes).padStart(2,'0');
+      nums[5].textContent = String(b.seconds).padStart(2,'0');
+      card.querySelector('.approx-el').textContent =
+        `≈ ${b.months} bulan ${b.weeksAfterMonths} minggu ${b.days % 7} hari lagi (total ${b.days} hari)`;
+    }
+  });
+  checkAlerts(now);
+  checkSnooze(now);
+}
+
+// ---------- Alert triggering (notification + alarm) ----------
+function checkAlerts(now){
+  let changed = false;
+  reminders.forEach(r=>{
+    if(r.selesai) return;
+    const diff = new Date(r.tanggal).getTime() - now;
+    if(diff <= 0){
+      if(r.alertStage !== 'lewat'){
+        fireNotification('Masa berlaku habis: ' + r.nama, r.nama + ' sudah melewati tanggal habis berlaku.');
+        startAlarm(r.id);
+        r.alertStage = 'lewat';
+        logAktivitas('notif', 'Jatuh tempo terlewat: ' + r.nama);
+        changed = true;
+      }
+      return;
+    }
+    if(r.alertStage === 'lewat') return;
+    const reached = tiersFor(r).filter(t => tierReached(r, t, now));
+    if(!reached.length) return;
+    const lowest = Math.min(...reached);
+    const fired = r.tierFired != null ? r.tierFired : (r.alertStage === 'peringatan' ? r.hariPeringatan : null);
+    if(fired !== null && lowest >= fired) return;
+    const sisa = Math.max(1, Math.ceil(diff / 86400000));
+    fireNotification('Segera perpanjang: ' + r.nama, r.nama + ' akan habis dalam ' + sisa + ' hari lagi (H-' + sisa + ').');
+    if(lowest <= 7) startAlarm(r.id);
+    r.alertStage = 'peringatan';
+    r.tierFired = lowest;
+    logAktivitas('notif', 'Peringatan H-' + sisa + ': ' + r.nama);
+    changed = true;
+  });
+  if(changed) saveReminders(true);
+}
+
+// ---------- Modal ----------
+const overlay = document.getElementById('overlay');
+const MODAL_CONTEXTS = {
+  ulangtahun: {
+    title: 'Ulang Tahun',
+    namaLabel: 'Nama orang / acara',
+    namaPlaceholder: 'Contoh: Ulang Tahun Ayah',
+    tanggalLabel: 'Tanggal lahir / ulang tahun',
+    hariLabel: 'Ingatkan berapa hari sebelum ulang tahun?',
+    ulangDefault: 'tahunan',
+    grupDefault: 'Ulang Tahun'
+  },
+  stnk: {
+    title: 'STNK',
+    namaLabel: 'Nama dokumen',
+    namaPlaceholder: 'Contoh: STNK Motor Vario',
+    tanggalLabel: 'Tanggal &amp; jam habis berlaku',
+    hariLabel: 'Ingatkan berapa hari sebelum habis?',
+    ulangDefault: 'tahunan',
+    grupDefault: 'STNK'
+  },
+  sim: {
+    title: 'SIM',
+    namaLabel: 'Nama dokumen',
+    namaPlaceholder: 'Contoh: SIM C an. Budi',
+    tanggalLabel: 'Tanggal &amp; jam habis berlaku',
+    hariLabel: 'Ingatkan berapa hari sebelum habis?',
+    ulangDefault: 'tahunan',
+    grupDefault: 'SIM'
+  },
+  bulanan: {
+    title: 'Tagihan Bulanan',
+    namaLabel: 'Nama tagihan',
+    namaPlaceholder: 'Contoh: Iuran WiFi / Uang Kebersihan',
+    tanggalLabel: 'Tanggal jatuh tempo',
+    hariLabel: 'Ingatkan berapa hari sebelum jatuh tempo?',
+    ulangDefault: 'bulanan',
+    grupDefault: ''
+  },
+  default: {
+    title: 'Pengingat',
+    namaLabel: 'Nama dokumen',
+    namaPlaceholder: 'Contoh: STNK Motor Vario',
+    tanggalLabel: 'Tanggal &amp; jam habis / jatuh tempo',
+    hariLabel: 'Ingatkan berapa hari sebelum habis?',
+    ulangDefault: 'tidak',
+    grupDefault: ''
+  }
+};
+
+function contextKeyFromGrup(grup){
+  const g = (grup || '').trim().toLowerCase();
+  if(g === 'ulang tahun') return 'ulangtahun';
+  if(g === 'stnk') return 'stnk';
+  if(g === 'sim') return 'sim';
+  return null;
+}
+
+function resolveModalContext(reminder, view){
+  let key = null;
+  if(reminder){
+    key = contextKeyFromGrup(reminder.grup);
+    if(!key && reminder.ulang === 'bulanan') key = 'bulanan';
+  }else{
+    if(view.startsWith('grup:')) key = contextKeyFromGrup(view.slice(5));
+    else if(view === 'bulanan') key = 'bulanan';
+  }
+  return MODAL_CONTEXTS[key] || MODAL_CONTEXTS.default;
+}
+
+function openModal(reminder, prefillDate){
+  const ctx = resolveModalContext(reminder, currentView);
+  document.getElementById('modalTitle').textContent = (reminder ? 'Edit ' : 'Tambah ') + ctx.title;
+  document.getElementById('lblNama').textContent = ctx.namaLabel;
+  document.getElementById('fNama').placeholder = ctx.namaPlaceholder;
+  document.getElementById('lblTanggal').innerHTML = ctx.tanggalLabel;
+  document.getElementById('lblHari').textContent = ctx.hariLabel;
+  document.getElementById('editId').value = reminder ? reminder.id : '';
+  document.getElementById('fNama').value = reminder ? reminder.nama : '';
+  document.getElementById('fGrup').value = reminder ? (reminder.grup || '') : ctx.grupDefault;
+  document.getElementById('fUlang').value = reminder ? (reminder.ulang || 'tidak') : ctx.ulangDefault;
+  document.getElementById('fTanggal').value = reminder ? reminder.tanggal : (prefillDate ? prefillDate + 'T09:00' : '');
+  document.getElementById('fHari').value = reminder ? reminder.hariPeringatan : settings.hariDefault;
+  document.getElementById('fBiaya').value = (reminder && reminder.biaya) ? reminder.biaya : '';
+  document.getElementById('fCatatan').value = reminder ? (reminder.catatan || '') : '';
+  profilFillSelect(reminder ? reminder.pemilik : (currentView.startsWith('pemilik:') ? currentView.slice(8) : ''));
+  document.getElementById('fUlangN').value = reminder && reminder.ulangN ? reminder.ulangN : 1;
+  document.getElementById('fUlangUnit').value = reminder && reminder.ulangUnit ? reminder.ulangUnit : 'm';
+  document.getElementById('ulangKustom').style.display = document.getElementById('fUlang').value === 'kustom' ? 'flex' : 'none';
+  chkDraft = reminder ? (reminder.checklist || []).map(c => ({t:c.t, d:!!c.d})) : [];
+  renderChkDraft();
+  overlay.classList.add('show');
+}
+function closeModal(){
+  overlay.classList.remove('show');
+}
+document.getElementById('btnAdd').addEventListener('click', ()=> openModal(null));
+document.getElementById('btnCancel').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeModal(); });
+
+document.getElementById('btnSave').addEventListener('click', ()=>{
+  const id = document.getElementById('editId').value;
+  const nama = document.getElementById('fNama').value.trim();
+  const grup = document.getElementById('fGrup').value.trim() || 'Lainnya';
+  const ulang = document.getElementById('fUlang').value;
+  const tanggal = document.getElementById('fTanggal').value;
+  const hariPeringatan = parseInt(document.getElementById('fHari').value, 10);
+  const biayaRaw = document.getElementById('fBiaya').value;
+  const biaya = biayaRaw === '' ? null : Math.max(0, parseInt(biayaRaw, 10) || 0);
+  const catatan = document.getElementById('fCatatan').value.trim();
+  const pemilik = document.getElementById('fPemilik').value || null;
+
+  if(!nama || !tanggal || isNaN(hariPeringatan) || hariPeringatan < 0){
+    alert('Mohon isi nama, tanggal, dan hari peringatan dengan benar.');
+    return;
+  }
+  const ulangN = Math.max(1, Math.min(999, parseInt(document.getElementById('fUlangN').value, 10) || 1));
+  const ulangUnit = document.getElementById('fUlangUnit').value;
+  const anchorDay = parseInt(tanggal.slice(8, 10), 10) || null;
+  const checklist = chkDraft.map(c => ({ t: c.t.trim().slice(0, 80), d: !!c.d })).filter(c => c.t);
+
+  if(id){
+    logAktivitas('edit', 'Mengubah pengingat "' + nama + '"');
+    const r = reminders.find(x=>x.id===id);
+    r.nama = nama;
+    r.grup = grup;
+    r.ulang = ulang;
+    r.ulangN = ulang === 'kustom' ? ulangN : null; r.ulangUnit = ulang === 'kustom' ? ulangUnit : null;
+    r.anchorDay = anchorDay; r.checklist = checklist;
+    r.tanggal = tanggal;
+    r.hariPeringatan = hariPeringatan;
+    r.catatan = catatan;
+    r.pemilik = pemilik;
+    r.biaya = biaya;
+    r.alertStage = null; r.tierFired = null; // reset alert state on edit
+    r.selesai = false;
+  }else{
+    logAktivitas('tambah', 'Menambah pengingat "' + nama + '" (' + grup + ')');
+    reminders.push({
+      id: uid(),
+      nama, grup, ulang, tanggal, hariPeringatan, catatan, biaya, pemilik,
+      ulangN: ulang === 'kustom' ? ulangN : null, ulangUnit: ulang === 'kustom' ? ulangUnit : null, anchorDay, checklist, bayar: [],
+      alertStage: null, tierFired: null,
+      selesai: false
+    });
+  }
+  saveReminders();
+  closeModal();
+  render();
+
+  if('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(updateNotifBanner);
+  }
+});
+
+document.getElementById('btnTestAlarm').addEventListener('click', ()=>{
+  startAlarm();
+  fireNotification('Tes notifikasi', 'Begini tampilan notifikasi & bunyi alarm pengingatmu. Ketuk "Matikan" di bawah untuk menghentikan.');
+});
+
+// ---------- Drawer menu ----------
+const drawer = document.getElementById('drawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const btnMenu = document.getElementById('btnMenu');
+function openDrawer(){
+  drawer.classList.add('show');
+  drawerOverlay.classList.add('show');
+  btnMenu.classList.add('open');
+}
+function closeDrawer(){
+  drawer.classList.remove('show');
+  drawerOverlay.classList.remove('show');
+  btnMenu.classList.remove('open');
+}
+btnMenu.addEventListener('click', ()=>{
+  drawer.classList.contains('show') ? closeDrawer() : openDrawer();
+});
+drawerOverlay.addEventListener('click', closeDrawer);
+document.querySelectorAll('.drawer-item').forEach(btn=>{
+  btn.addEventListener('click', closeDrawer);
+});
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=> setView(btn.dataset.view));
+});
+document.getElementById('viewBack').addEventListener('click', ()=> setView('dashboard'));
+document.getElementById('viewAdd').addEventListener('click', ()=> currentView === 'brankas' ? openBrankasModal(null) : openModal(null));
+
+// ---------- Menu: badge & grup dinamis ----------
+function setCount(key, n, warn){
+  const el = document.querySelector(`[data-count="${key}"]`);
+  if(el){ el.textContent = n; el.classList.toggle('warn', !!warn); }
+}
+function updateDrawerMeta(){
+  const now = Date.now();
+  const aktif = reminders.filter(r=>!r.selesai);
+  const perlu = aktif.filter(r=>['lewat','mendesak','segera'].includes(statusOf(r, now).level)).length;
+  setCount('lewat', perlu, perlu > 0);
+  setCount('semua', reminders.length, false);
+  setCount('selesai', reminders.length - aktif.length, false);
+  const box = document.getElementById('drawerGrup');
+  box.innerHTML = '';
+  allGrups().forEach(g=>{
+    const n = reminders.filter(r=> !r.selesai && (r.grup || 'Lainnya').toLowerCase() === g.nama.toLowerCase()).length;
+    const b = document.createElement('button');
+    b.className = 'drawer-item nav-item';
+    b.dataset.view = 'grup:' + g.nama;
+    b.innerHTML = '<span class="emoji"></span><span></span><span class="count"></span>';
+    b.children[0].textContent = g.emoji;
+    b.children[1].textContent = g.nama;
+    b.children[2].textContent = n;
+    b.addEventListener('click', ()=>{ closeDrawer(); setView(b.dataset.view); });
+    box.appendChild(b);
+  });
+}
+
+// ---------- Selesai / lunas + riwayat pembayaran ----------
+function completeReminder(id, jumlah, paidAt){
+  const r = reminders.find(x => x.id === id);
+  if(!r) return;
+  const before = cloneR(r);
+  forgetAlarmFor(r.id);
+  r.bayar = Array.isArray(r.bayar) ? r.bayar : [];
+  r.bayar.push({ t: paidAt, due: r.tanggal, jumlah });
+  const bayarTxt = jumlah ? ' (' + fmtRp(jumlah) + ')' : '';
+  if(r.ulang === 'tidak'){
+    r.selesai = true;
+    logAktivitas('selesai', 'Menandai "' + r.nama + '" selesai' + bayarTxt);
+  }else{
+    r.tanggal = addCycle(r.tanggal, r.ulang, r);
+    (r.checklist || []).forEach(c => c.d = false);
+    logAktivitas('lunas', 'Menandai "' + r.nama + '" lunas/diperpanjang' + bayarTxt + ', jatuh tempo berikutnya ' + fmtDate(r.tanggal));
+    r.alertStage = null; r.tierFired = null; r.selesai = false;
+  }
+  saveReminders(); render();
+  pushUndo(r.selesai ? 'Ditandai selesai' : 'Ditandai lunas, jatuh tempo maju ke ' + fmtShort(r.tanggal), undoRestoreFor(before));
+}
+const payOverlay = document.getElementById('payOverlay');
+let payFor = null;
+function todayStr(){ const d = new Date(), p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function openPay(id){
+  const r = reminders.find(x => x.id === id); if(!r) return;
+  payFor = id;
+  document.getElementById('payInfo').textContent = '"' + r.nama + '" · jatuh tempo ' + fmtDate(r.tanggal);
+  document.getElementById('payJumlah').value = r.biaya || '';
+  document.getElementById('payTgl').value = todayStr();
+  payOverlay.classList.add('show');
+  setTimeout(()=> document.getElementById('payJumlah').focus(), 50);
+}
+document.getElementById('payBatal').addEventListener('click', ()=> payOverlay.classList.remove('show'));
+payOverlay.addEventListener('click', (e)=>{ if(e.target === payOverlay) payOverlay.classList.remove('show'); });
+document.getElementById('payJumlah').addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('paySimpan').click(); });
+document.getElementById('paySimpan').addEventListener('click', ()=>{
+  const raw = document.getElementById('payJumlah').value, tgl = document.getElementById('payTgl').value || todayStr();
+  const jumlah = raw === '' ? null : Math.max(0, parseInt(raw, 10) || 0);
+  const paidAt = tgl === todayStr() ? new Date().toISOString() : new Date(tgl + 'T12:00').toISOString();
+  payOverlay.classList.remove('show');
+  completeReminder(payFor, jumlah, paidAt);
+});
+
+// ---------- Daftar periksa di formulir ----------
+let chkDraft = [];
+const CHK_TPL = {
+  stnk: ['Siapkan KTP asli', 'Siapkan STNK & BPKB', 'Bayar pajak (Samsat / e-Samsat)', 'Simpan bukti bayar'],
+  sim: ['Siapkan KTP asli', 'Surat sehat / cek kesehatan', 'Bayar PNBP perpanjangan', 'Foto & sidik jari di Satpas'],
+  bpjs: ['Cek tunggakan iuran', 'Bayar iuran', 'Simpan bukti bayar'],
+  def: ['Siapkan dokumen asli', 'Siapkan fotokopi', 'Lakukan pembayaran', 'Simpan bukti']
+};
+function renderChkDraft(focusLast){
+  const box = document.getElementById('fChkList');
+  box.innerHTML = chkDraft.map((c,i)=>`<div class="chk-edit"><input type="text" maxlength="80" data-i="${i}" value="${escapeHtml(c.t)}" placeholder="Contoh: Bawa KTP asli"><button type="button" data-i="${i}" aria-label="Hapus butir">✕</button></div>`).join('');
+  box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', ()=>{ chkDraft[+inp.dataset.i].t = inp.value; }));
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', ()=>{ chkDraft.splice(+b.dataset.i, 1); renderChkDraft(); }));
+  if(focusLast){ const all = box.querySelectorAll('input'); if(all.length) all[all.length - 1].focus(); }
+}
+document.getElementById('chkAdd').addEventListener('click', ()=>{ chkDraft.push({t:'', d:false}); renderChkDraft(true); });
+document.getElementById('chkTpl').addEventListener('click', ()=>{
+  const g = document.getElementById('fGrup').value.trim().toLowerCase();
+  const tpl = CHK_TPL[g] || CHK_TPL.def;
+  const have = new Set(chkDraft.map(c => c.t.trim().toLowerCase()));
+  tpl.forEach(t => { if(!have.has(t.toLowerCase())) chkDraft.push({t, d:false}); });
+  renderChkDraft();
+});
+document.getElementById('fUlang').addEventListener('change', ()=>{
+  document.getElementById('ulangKustom').style.display = document.getElementById('fUlang').value === 'kustom' ? 'flex' : 'none';
+});
+
+// ---------- Statistik pembayaran (Ringkasan) ----------
+function paymentsAll(){
+  const out = [];
+  reminders.forEach(r => (r.bayar || []).forEach(b => {
+    const t = new Date(b.t).getTime();
+    if(!isNaN(t)) out.push({ nama:r.nama, grup:r.grup || 'Lainnya', t, jumlah:b.jumlah || 0 });
+  }));
+  return out.sort((a,b)=> b.t - a.t);
+}
+function fmtCompact(n){ return n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.', ',') + ' jt' : n >= 1e3 ? Math.round(n / 1e3) + ' rb' : String(n); }
+function ringkasanBayarHtml(now){
+  const pays = paymentsAll(), cur = new Date(now), months = [];
+  for(let i = 11; i >= 0; i--){
+    const d = new Date(cur.getFullYear(), cur.getMonth() - i, 1);
+    months.push({ y:d.getFullYear(), m:d.getMonth(), sum:0, label:d.toLocaleDateString('id-ID', {month:'short'}) });
+  }
+  const start = new Date(months[0].y, months[0].m, 1).getTime();
+  const cat = {};
+  pays.forEach(p => {
+    if(p.t < start || p.t > now + 864e5) return;
+    const d = new Date(p.t), mo = months.find(x => x.y === d.getFullYear() && x.m === d.getMonth());
+    if(mo) mo.sum += p.jumlah;
+    cat[p.grup] = (cat[p.grup] || 0) + p.jumlah;
+  });
+  const total = months.reduce((t, m) => t + m.sum, 0), max = Math.max(1, ...months.map(m => m.sum));
+  const thisY = pays.filter(p => new Date(p.t).getFullYear() === cur.getFullYear()).reduce((t, p) => t + p.jumlah, 0);
+  const next90 = reminders.filter(r => !r.selesai && r.biaya && new Date(r.tanggal) - now <= 90 * 864e5 && new Date(r.tanggal) - now > -864e5 * 3650).reduce((t, r) => t + r.biaya, 0);
+  let out = '<div class="drawer-divider" style="padding-left:0;">Pengeluaran 12 bulan terakhir</div>';
+  if(!pays.length){
+    return out + '<div class="empty" style="padding:22px;">Belum ada pembayaran tercatat. Saat menandai pengingat berbiaya sebagai lunas, isi jumlahnya dan grafik akan muncul di sini.</div>';
+  }
+  out += `<div class="kpi"><div><b>${fmtRp(total)}</b><span>Total 12 bulan</span></div><div><b>${fmtRp(Math.round(total / 12))}</b><span>Rata-rata per bulan</span></div><div><b>${fmtRp(thisY)}</b><span>Tahun ${cur.getFullYear()}</span></div><div><b>${fmtRp(next90)}</b><span>Estimasi ≤ 90 hari</span></div></div>`;
+  out += '<div class="bars" role="img" aria-label="Grafik pengeluaran per bulan">' + months.map(mo => {
+    const h = mo.sum ? Math.max(3, Math.round(mo.sum / max * 100)) : 0;
+    return `<div class="bcol" title="${mo.label} ${mo.y}: ${fmtRp(mo.sum)}">${mo.sum ? `<span class="v">${fmtCompact(mo.sum)}</span>` : ''}<div class="bar${mo.sum ? '' : ' zero'}" style="height:${mo.sum ? h * 0.78 : 2}%"></div><small>${mo.label}</small></div>`;
+  }).join('') + '</div>';
+  const cats = Object.entries(cat).filter(e => e[1] > 0).sort((a,b)=> b[1] - a[1]), cmax = cats.length ? cats[0][1] : 1;
+  if(cats.length){
+    out += '<div class="drawer-divider" style="padding-left:0;">Per kategori (12 bulan)</div>' + cats.map(([g, n]) =>
+      `<div class="hbar"><div class="t"><span>${escapeHtml(g)}</span><b>${fmtRp(n)}</b></div><div class="tr"><i style="width:${Math.max(2, Math.round(n / cmax * 100))}%"></i></div></div>`).join('');
+  }
+  out += '<div class="drawer-divider" style="padding-left:0;">Pembayaran terakhir</div>' + pays.slice(0, 8).map(p =>
+    `<div class="grup-row"><span>${escapeHtml(p.nama)}<br><small style="color:var(--text-dim)">${escapeHtml(new Date(p.t).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}))}</small></span><span>${p.jumlah ? fmtRp(p.jumlah) : '–'}</span></div>`).join('');
+  return out;
+}
+
+// ---------- Penjadwalan ulang ----------
+const reschedOverlay = document.getElementById('reschedOverlay');
+function toLocalInput(ms){
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+let reschedBase = Date.now();
+function openResched(id){
+  const r = reminders.find(x => x.id === id);
+  if(!r) return;
+  document.getElementById('reschedId').value = id;
+  const due = new Date(r.tanggal).getTime();
+  reschedBase = Math.max(Date.now(), due);
+  document.getElementById('reschedInfo').textContent = '"' + r.nama + '" jatuh tempo ' + fmtDate(r.tanggal) + '.';
+  document.getElementById('reschedTgl').value = toLocalInput(reschedBase + 86400000);
+  document.getElementById('reschedHint').textContent = 'Tombol cepat dihitung dari ' + (due > Date.now() ? 'tanggal jatuh tempo saat ini.' : 'sekarang (karena sudah lewat).');
+  reschedOverlay.classList.add('show');
+}
+document.querySelectorAll('#reschedChips button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const d = new Date(reschedBase);
+    if(b.dataset.h) d.setHours(d.getHours() + parseInt(b.dataset.h, 10));
+    if(b.dataset.d) d.setDate(d.getDate() + parseInt(b.dataset.d, 10));
+    if(b.dataset.m) d.setMonth(d.getMonth() + parseInt(b.dataset.m, 10));
+    document.getElementById('reschedTgl').value = toLocalInput(d.getTime());
+  });
+});
+document.getElementById('reschedBatal').addEventListener('click', ()=> reschedOverlay.classList.remove('show'));
+document.getElementById('reschedSimpan').addEventListener('click', ()=>{
+  const r = reminders.find(x => x.id === document.getElementById('reschedId').value);
+  const v = document.getElementById('reschedTgl').value;
+  if(!r || !v || isNaN(new Date(v).getTime())){ alert('Isi tanggal & jam baru.'); return; }
+  const lama = r.tanggal, before = cloneR(r);
+  r.tanggal = v;
+  r.selesai = false;
+  // Tahap yang sudah terlewati tidak dibunyikan ulang; hanya tahap berikutnya & jatuh tempo baru
+  const now = Date.now();
+  const reached = new Date(v).getTime() > now ? tiersFor(r).filter(t => tierReached(r, t, now)) : [];
+  r.tierFired = reached.length ? Math.min(...reached) : null;
+  r.alertStage = reached.length ? 'peringatan' : null;
+  forgetAlarmFor(r.id);
+  logAktivitas('jadwal', 'Menjadwalkan ulang "' + r.nama + '" dari ' + fmtDate(lama) + ' ke ' + fmtDate(v));
+  saveReminders();
+  reschedOverlay.classList.remove('show');
+  render();
+  pushUndo('Dijadwalkan ulang ke ' + fmtShort(v), undoRestoreFor(before));
+});
+reschedOverlay.addEventListener('click', (e)=>{ if(e.target === reschedOverlay) reschedOverlay.classList.remove('show'); });
+
+// ---------- Pengaturan, Tentang, Pasang Aplikasi ----------
+const settingsOverlay = document.getElementById('settingsOverlay');
+const aboutOverlay = document.getElementById('aboutOverlay');
+document.getElementById('btnSettings').addEventListener('click', ()=>{
+  document.getElementById('fSuara').checked = settings.suara;
+  document.getElementById('fHariDefault').value = settings.hariDefault;
+  document.getElementById('fTahap').value = (settings.tahap || []).join(', ');
+  document.getElementById('fTema').value = settings.tema || 'auto';
+  document.getElementById('fJamAktif').checked = !!settings.jamAktif;
+  document.getElementById('fJam').value = settings.jamAlarm || '08:00';
+  document.getElementById('fSnooze').value = String(settings.snoozeMenit || 10);
+  settingsOverlay.classList.add('show');
+});
+document.getElementById('btnCloseSettings').addEventListener('click', ()=> settingsOverlay.classList.remove('show'));
+settingsOverlay.addEventListener('click', (e)=>{ if(e.target === settingsOverlay) settingsOverlay.classList.remove('show'); });
+document.getElementById('btnSaveSettings').addEventListener('click', ()=>{
+  const v = parseInt(document.getElementById('fHariDefault').value, 10);
+  if(isNaN(v) || v < 0){ alert('Isi default hari peringatan dengan angka 0 atau lebih.'); return; }
+  const tahap = [...new Set(document.getElementById('fTahap').value.split(',').map(x=>parseInt(x,10)).filter(n=>n>0))].sort((a,b)=>b-a);
+  const jamAktif = document.getElementById('fJamAktif').checked, jam = document.getElementById('fJam').value;
+  if(jamAktif && !jam){ alert('Isi jam alarm, atau matikan opsi jam tetap.'); return; }
+  settings = { suara: document.getElementById('fSuara').checked, hariDefault: v, tahap, tema: document.getElementById('fTema').value,
+    jamAktif, jamAlarm: jam || '08:00', snoozeMenit: parseInt(document.getElementById('fSnooze').value, 10) || 10 };
+  applyTheme();
+  try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(e){}
+  settingsOverlay.classList.remove('show');
+});
+document.getElementById('btnResetAll').addEventListener('click', ()=>{
+  if(!confirm('Hapus SEMUA pengingat? Tindakan ini tidak bisa dibatalkan. Pastikan sudah backup.')) return;
+  reminders = [];
+  logAktivitas('hapus', 'Menghapus semua data pengingat');
+  saveReminders();
+  settingsOverlay.classList.remove('show');
+  render();
+});
+document.getElementById('btnAbout').addEventListener('click', ()=> aboutOverlay.classList.add('show'));
+document.getElementById('btnCloseAbout').addEventListener('click', ()=> aboutOverlay.classList.remove('show'));
+aboutOverlay.addEventListener('click', (e)=>{ if(e.target === aboutOverlay) aboutOverlay.classList.remove('show'); });
+
+let deferredInstall = null;
+const btnInstall = document.getElementById('btnInstall');
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstall = e;
+  btnInstall.style.display = 'flex';
+});
+window.addEventListener('appinstalled', ()=>{ btnInstall.style.display = 'none'; deferredInstall = null; });
+btnInstall.addEventListener('click', ()=>{
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.finally(()=>{ deferredInstall = null; btnInstall.style.display = 'none'; });
+});
+
+// ---------- Backup & Restore ----------
+const backupOverlay = document.getElementById('backupOverlay');
+document.getElementById('btnBackup').addEventListener('click', ()=>{
+  backupOverlay.classList.add('show');
+});
+document.getElementById('btnCloseBackup').addEventListener('click', ()=>{
+  backupOverlay.classList.remove('show');
+});
+backupOverlay.addEventListener('click', (e)=>{ if(e.target === backupOverlay) backupOverlay.classList.remove('show'); });
+
+// Satu file cadangan: di Chrome/Edge komputer file yang SAMA ditimpa (handle disimpan di IndexedDB);
+// browser lain mengunduh dengan nama tetap.
+const BK_FILENAME = 'pengingat-backup.json';
+function bkIdb(){
+  return new Promise((res, rej)=>{
+    const r = indexedDB.open('pengingat-meta', 1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore('kv');
+    r.onsuccess = ()=> res(r.result);
+    r.onerror = ()=> rej(r.error);
+  });
+}
+async function bkIdbGet(k){
+  const db = await bkIdb();
+  return new Promise((res, rej)=>{
+    const q = db.transaction('kv').objectStore('kv').get(k);
+    q.onsuccess = ()=> res(q.result || null);
+    q.onerror = ()=> rej(q.error);
+  });
+}
+async function bkIdbSet(k, v){
+  const db = await bkIdb();
+  return new Promise((res, rej)=>{
+    const tx = db.transaction('kv', 'readwrite');
+    if(v === null) tx.objectStore('kv').delete(k); else tx.objectStore('kv').put(v, k);
+    tx.oncomplete = ()=> res();
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+async function bkWriteToSameFile(text){
+  // true = berhasil menimpa, false = tidak didukung/gagal (pakai unduhan), 'cancel' = dibatalkan
+  if(typeof window.showSaveFilePicker !== 'function') return false;
+  for(let attempt = 0; attempt < 2; attempt++){
+    try{
+      let handle = null;
+      try{ handle = await bkIdbGet('backupHandle'); }catch(e){}
+      if(handle){
+        let perm = await handle.queryPermission({mode:'readwrite'});
+        if(perm !== 'granted') perm = await handle.requestPermission({mode:'readwrite'});
+        if(perm !== 'granted') handle = null;
+      }
+      if(!handle){
+        handle = await window.showSaveFilePicker({
+          suggestedName: BK_FILENAME,
+          types: [{description:'Cadangan Pengingat', accept:{'application/json':['.json']}}]
+        });
+        try{ await bkIdbSet('backupHandle', handle); }catch(e){}
+      }
+      const w = await handle.createWritable();
+      await w.write(text);
+      await w.close();
+      return true;
+    }catch(err){
+      if(err && err.name === 'AbortError') return 'cancel';
+      try{ await bkIdbSet('backupHandle', null); }catch(e){}
+      if(attempt === 1) return false;
+    }
+  }
+  return false;
+}
+
+function bkLast(){ return parseInt(localStorage.getItem('pengingat-last-backup'), 10) || 0; }
+function needBackup(){
+  if(!reminders.length) return false;
+  const last = bkLast();
+  const chg = parseInt(localStorage.getItem('pengingat-last-change'), 10) || 0;
+  return !last || chg > last;
+}
+function bkRender(){
+  const info = document.getElementById('bkInfo'), banner = document.getElementById('bkBanner');
+  if(!info || !banner) return;
+  const last = bkLast();
+  const days = last ? Math.floor((Date.now() - last) / 864e5) : null;
+  const need = needBackup();
+  if(!reminders.length) info.textContent = 'Belum ada data untuk dicadangkan.';
+  else if(!last) info.textContent = 'Data belum pernah dicadangkan. Data hanya ada di browser ini.';
+  else info.textContent = 'Cadangan terakhir ' + (days === 0 ? 'hari ini' : days + ' hari lalu') + (need ? ' · ada perubahan yang belum tercadangkan' : ' · semua data sudah tercadangkan');
+  document.getElementById('bkBannerTxt').textContent = last ? '⚠️ Ada perubahan yang belum disimpan' : '⚠️ Data belum pernah dicadangkan';
+  banner.classList.toggle('ok', !need);
+  document.getElementById('btnMenu').classList.toggle('dirty', need);
+  document.getElementById('bkCount').style.display = need ? '' : 'none';
+}
+function showToast(t){
+  let el = document.getElementById('toast');
+  if(!el){ el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = t;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(()=> el.classList.remove('show'), 2600);
+}
+document.getElementById('btnBkBanner').addEventListener('click', ()=> doBackup());
+
+// Minta browser agar data tidak dihapus otomatis saat memori HP penuh
+async function requestPersist(){
+  try{
+    if(!(navigator.storage && navigator.storage.persist)) return 'unsupported';
+    if(navigator.storage.persisted && await navigator.storage.persisted()) return 'granted';
+    return (await navigator.storage.persist()) ? 'granted' : 'denied';
+  }catch(e){ return 'unsupported'; }
+}
+function storageChars(){
+  let n = 0;
+  try{ for(let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); n += k.length + (localStorage.getItem(k) || '').length; } }catch(e){}
+  return n;
+}
+function fmtSize(n){
+  return n < 1048576 ? (n / 1024).toFixed(1).replace('.', ',') + ' KB' : (n / 1048576).toFixed(2).replace('.', ',') + ' MB';
+}
+async function updatePersistStatus(){
+  const el = document.getElementById('persistStatus');
+  if(!el) return;
+  const st = await requestPersist();
+  const msg = st === 'granted' ? 'Penyimpanan: permanen, tidak dihapus otomatis saat memori penuh.'
+    : st === 'denied' ? 'Penyimpanan: belum permanen, browser bisa menghapus data saat memori HP penuh. Pasang aplikasi ke layar utama dan rutin simpan cadangan.'
+    : 'Penyimpanan permanen tidak didukung di sini. Rutin simpan cadangan.';
+  el.textContent = msg + ' Terpakai: ' + fmtSize(storageChars()) + ' (batas umum sekitar 5 MB).';
+}
+document.getElementById('btnBackup').addEventListener('click', ()=>{ bkRender(); updatePersistStatus(); });
+
+// ---------- Enkripsi cadangan (AES-256-GCM, kunci dari kata sandi via PBKDF2) ----------
+const BK_ENC_KEY = 'pengingat-bk-enc';
+const BK_ITER = 250000;
+function bkEncOn(){ try{ return localStorage.getItem(BK_ENC_KEY) === '1'; }catch(e){ return false; } }
+function cryptoOk(){ return !!(window.crypto && crypto.subtle); }
+async function bkDeriveKey(pass, salt, iter){
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:iter, hash:'SHA-256' }, k, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function bkEncrypt(text, pass){
+  const salt = randBytes(16), iv = randBytes(12);
+  const key = await bkDeriveKey(pass, salt, BK_ITER);
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(text));
+  return JSON.stringify({ app:'pengingat-backup', version:3, encrypted:true, cipher:'AES-256-GCM', kdf:'PBKDF2-SHA256',
+    iterations:BK_ITER, salt:bufToB64(salt), iv:bufToB64(iv), data:bufToB64(ct), exportedAt:new Date().toISOString() }, null, 2);
+}
+async function bkDecrypt(env, pass){
+  const iter = parseInt(env.iterations, 10);
+  if(!(iter >= 10000 && iter <= 2000000)) throw new Error('bad-iter');
+  const key = await bkDeriveKey(pass, b64ToBuf(env.salt), iter);
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:b64ToBuf(env.iv) }, key, b64ToBuf(env.data));
+  return new TextDecoder().decode(pt);
+}
+function askPassword(o){
+  return new Promise(resolve=>{
+    const ov = document.getElementById('passOverlay'), i1 = document.getElementById('passIn1'), i2 = document.getElementById('passIn2');
+    const err = document.getElementById('passErr'), ok = document.getElementById('passOk'), cancel = document.getElementById('passCancel');
+    document.getElementById('passTitle').textContent = o.title;
+    document.getElementById('passMsg').textContent = o.msg || '';
+    document.getElementById('passField2').style.display = o.confirm ? '' : 'none';
+    i1.value = ''; i2.value = ''; err.textContent = '';
+    ov.classList.add('show');
+    setTimeout(()=> i1.focus(), 50);
+    const finish = v => { ov.classList.remove('show'); ok.onclick = cancel.onclick = i1.onkeydown = i2.onkeydown = null; i1.value = ''; i2.value = ''; resolve(v); };
+    ok.onclick = ()=>{
+      const p = i1.value;
+      if(o.confirm){
+        if(p.length < 8){ err.textContent = 'Minimal 8 karakter.'; return; }
+        if(p !== i2.value){ err.textContent = 'Kata sandi tidak sama.'; return; }
+      }else if(!p){ err.textContent = 'Isi kata sandi.'; return; }
+      finish(p);
+    };
+    cancel.onclick = ()=> finish(null);
+    i1.onkeydown = i2.onkeydown = e => { if(e.key === 'Enter') ok.click(); };
+  });
+}
+function bkEncRender(){
+  const on = bkEncOn();
+  const cb = document.getElementById('bkEncrypt'); if(cb) cb.checked = on;
+  const h = document.getElementById('bkVaultHint');
+  if(h) h.textContent = on ? 'File cadangan dienkripsi, termasuk data Brankas. Simpan kata sandinya; tanpa itu file tidak bisa dibuka.'
+    : 'File cadangan tidak terenkripsi. Jika berisi Brankas, simpan di tempat aman dan jangan dibagikan.';
+}
+document.getElementById('bkEncrypt').addEventListener('change', (e)=>{
+  if(e.target.checked && !cryptoOk()){ e.target.checked = false; alert('Enkripsi butuh koneksi aman (HTTPS). Buka aplikasi lewat alamat https:// atau pasang ke layar utama.'); return; }
+  try{ localStorage.setItem(BK_ENC_KEY, e.target.checked ? '1' : '0'); }catch(err){}
+  bkPassCache = null;
+  bkEncRender();
+});
+bkEncRender();
+
+async function doBackup(){
+  const payload = {
+    app: 'pengingat-backup', version: 2, exportedAt: new Date().toISOString(),
+    reminders, grups: grupData, riwayat, settings, profil: profilData, anggaran: anggaranData,
+    brankas: (document.getElementById('bkIncludeVault') || {checked:true}).checked ? brankasData : undefined
+  };
+  let text = JSON.stringify(payload, null, 2);
+  const enc = bkEncOn();
+  if(enc){
+    if(!cryptoOk()){ alert('Enkripsi butuh koneksi aman (HTTPS). Cadangan dibatalkan supaya tidak tersimpan tanpa enkripsi.'); return; }
+    if(!bkPassCache){
+      const pw = await askPassword({ title:'Kata sandi cadangan', confirm:true,
+        msg:'Buat kata sandi untuk mengunci file cadangan. Kata sandi tidak disimpan di mana pun; jika lupa, cadangan tidak bisa dipulihkan.' });
+      if(!pw) return;
+      bkPassCache = pw;
+    }
+    try{ text = await bkEncrypt(text, bkPassCache); }
+    catch(err){ alert('Gagal mengenkripsi cadangan.'); return; }
+  }
+  const r = await bkWriteToSameFile(text);
+  if(r === 'cancel') return;
+  let msg;
+  if(r === true){
+    msg = '✅ Cadangan' + (enc ? ' terenkripsi' : '') + ' diperbarui (file yang sama).';
+  }else{
+    const url = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+    const a = document.createElement('a');
+    a.href = url; a.download = BK_FILENAME;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    msg = '✅ Cadangan' + (enc ? ' terenkripsi' : '') + ' diunduh sebagai ' + BK_FILENAME + '.';
+  }
+  try{ localStorage.setItem('pengingat-last-backup', String(Date.now())); }catch(e){}
+  logAktivitas('backup', 'Menyimpan cadangan' + (enc ? ' terenkripsi' : '') + ' (' + reminders.length + ' pengingat)');
+  bkRender();
+  document.getElementById('bkInfo').textContent = msg;
+  showToast(msg.replace('✅ ', ''));
+}
+document.getElementById('btnExport').addEventListener('click', doBackup);
+document.getElementById('btnQuickBackup').addEventListener('click', doBackup);
+
+function normReminder(r){
+  return {
+    id: r.id || uid(),
+    nama: r.nama || 'Tanpa nama',
+    grup: r.grup || 'Lainnya',
+    ulang: r.ulang || 'tidak',
+    tanggal: r.tanggal,
+    hariPeringatan: typeof r.hariPeringatan === 'number' ? r.hariPeringatan : 7,
+    alertStage: r.alertStage || null,
+    tierFired: r.tierFired != null ? r.tierFired : null,
+    catatan: r.catatan || '',
+    pemilik: typeof r.pemilik === 'string' ? r.pemilik : null,
+    biaya: typeof r.biaya === 'number' ? r.biaya : null,
+    ulangN: r.ulangN || null, ulangUnit: r.ulangUnit || null, anchorDay: r.anchorDay || null,
+    checklist: Array.isArray(r.checklist) ? r.checklist.filter(c => c && c.t).map(c => ({ t:String(c.t).slice(0, 80), d:!!c.d })) : [],
+    bayar: Array.isArray(r.bayar) ? r.bayar.filter(b => b && b.t).map(b => ({ t:b.t, due:b.due || null, jumlah:typeof b.jumlah === 'number' ? b.jumlah : null })) : [],
+    selesai: !!r.selesai
+  };
+}
+document.getElementById('fileImport').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev)=>{
+    let data;
+    try{ data = JSON.parse(ev.target.result); }
+    catch(err){ alert('File tidak valid. Pastikan file cadangan berformat .json yang benar.'); e.target.value = ''; return; }
+    if(data && data.app === 'pengingat-backup' && data.encrypted){
+      if(!cryptoOk()){ alert('File ini terenkripsi. Membukanya butuh koneksi aman (HTTPS).'); e.target.value = ''; return; }
+      let plain = null;
+      while(plain === null){
+        const pw = await askPassword({ title:'Buka cadangan terenkripsi', msg:'Masukkan kata sandi yang dipakai saat menyimpan cadangan ini.' });
+        if(!pw){ e.target.value = ''; return; }
+        try{ plain = await bkDecrypt(data, pw); bkPassCache = bkEncOn() ? pw : bkPassCache; }
+        catch(err){ alert('Kata sandi salah atau file rusak. Coba lagi.'); }
+      }
+      try{ data = JSON.parse(plain); }
+      catch(err){ alert('Isi cadangan tidak valid.'); e.target.value = ''; return; }
+    }
+    let rem, grp = null, log = null, set = null, bra = null;
+    if(Array.isArray(data)){ rem = data; }
+    else if(data && data.app === 'pengingat-backup' && Array.isArray(data.reminders)){
+      rem = data.reminders; grp = data.grups; log = data.riwayat; set = data.settings; bra = data.brankas;
+    }else{ alert('File cadangan tidak dikenali.'); e.target.value = ''; return; }
+    if(!confirm('Pulihkan ' + rem.length + ' pengingat dari file ini? Data yang ada sekarang akan ditimpa.')){ e.target.value = ''; return; }
+    reminders = rem.filter(r=> r && r.tanggal).map(normReminder);
+    if(Array.isArray(grp)){ grupData = grp.filter(g=> g && g.nama).map(g=>({nama:String(g.nama), emoji:g.emoji || '🗂️'})); saveGrups(); }
+    if(Array.isArray(log)){ riwayat = log.slice(0, 300); try{ localStorage.setItem(LOG_KEY, JSON.stringify(riwayat)); }catch(err){} }
+    if(set && typeof set === 'object'){
+      Object.assign(settings, set);
+      try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }catch(err){}
+      applyTheme();
+    }
+    if(Array.isArray(bra)){ brankasData = normBrankas(bra); saveBrankas(true); }
+    if(data && !Array.isArray(data)) profilImport(data.profil, data.anggaran);
+    logAktivitas('backup', 'Memulihkan ' + reminders.length + ' pengingat dari file cadangan');
+    saveReminders();
+    try{ localStorage.setItem('pengingat-last-backup', String(Date.now())); }catch(err){}
+    render();
+    e.target.value = '';
+    backupOverlay.classList.remove('show');
+    alert('Data berhasil dipulihkan.');
+  };
+  reader.readAsText(file);
+});
+
+// ---------- Tombol back (Android): balik ke dashboard dulu, baru konfirmasi keluar ----------
+let intentionalExit = false;
+
+function anyOpen(){ return drawer.classList.contains('show') || !!document.querySelector('.overlay.show'); }
+function closeAnyOverlay(){
+  if(drawer.classList.contains('show')) closeDrawer();
+  if(overlay.classList.contains('show')) closeModal();
+  document.querySelectorAll('.overlay.show').forEach(o => { if(o.id !== 'passOverlay') o.classList.remove('show'); });
+}
+function showExitConfirm(){
+  const need = needBackup();
+  document.getElementById('exitMsg').textContent = need
+    ? '⚠️ Ada perubahan yang belum dicadangkan ke file. Simpan cadangan dulu supaya data aman jika browser dibersihkan.'
+    : 'Semua data sudah tercadangkan dan tersimpan aman.';
+  document.getElementById('btnExitBackup').style.display = need ? '' : 'none';
+  document.getElementById('exitOverlay').classList.add('show');
+}
+function hideExitConfirm(){
+  document.getElementById('exitOverlay').classList.remove('show');
+}
+
+// Riwayat: [0] sentinel -> [1] dashboard (guard) -> [2..] halaman lain.
+// Back dari dashboard mendarat di sentinel: tampilkan konfirmasi dan pasang guard lagi, tidak pernah langsung keluar.
+let swallowPop = false;
+window.addEventListener('popstate', (e)=>{
+  if(swallowPop){ swallowPop = false; return; }
+
+  if(intentionalExit){
+    intentionalExit = false;
+    history.back();
+    setTimeout(()=>{ if(!document.hidden) showToast('Tutup aplikasi dari daftar aplikasi / tab browser.'); }, 600);
+    return;
+  }
+
+  // Ada dialog atau menu terbuka: back hanya menutupnya, halaman tidak berpindah.
+  if(anyOpen()){
+    const keepPass = document.getElementById('passOverlay').classList.contains('show');
+    if(!keepPass) closeAnyOverlay();
+    swallowPop = true;
+    history.go(1);
+    return;
+  }
+
+  const state = e.state;
+  if(state && state.view){
+    currentView = state.view;
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+    return;
+  }
+
+  // Sentinel / tanpa state = niat keluar aplikasi.
+  history.pushState({view:'dashboard', guard:true}, '');
+  currentView = 'dashboard';
+  render();
+  showExitConfirm();
+});
+
+document.getElementById('btnExitCancel').addEventListener('click', hideExitConfirm);
+document.getElementById('btnExitConfirm').addEventListener('click', ()=>{
+  hideExitConfirm();
+  intentionalExit = true;
+  history.back();
+});
+
+document.getElementById('bnAdd').addEventListener('click', ()=> openModal(null));
+
+// ---------- Kalender ----------
+let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let calSel = new Date().getDate();
+function renderKalender(list){
+  const now = Date.now(), t = new Date();
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const lead = (new Date(y, m, 1).getDay() + 6) % 7;
+  const total = new Date(y, m + 1, 0).getDate();
+  const by = {};
+  reminders.filter(r=>!r.selesai).forEach(r=>{
+    const d = new Date(r.tanggal);
+    if(d.getFullYear() === y && d.getMonth() === m) (by[d.getDate()] = by[d.getDate()] || []).push(r);
+  });
+  const rank = { lewat:4, mendesak:3, segera:2, aman:1, selesai:0 };
+  const worst = arr => arr.map(r => statusOf(r, now)).sort((a,b)=> rank[b.level] - rank[a.level])[0];
+  const isNow = t.getFullYear() === y && t.getMonth() === m;
+  const label = calMonth.toLocaleDateString('id-ID', {month:'long', year:'numeric'});
+  const monthCount = Object.values(by).reduce((n,a)=> n + a.length, 0);
+  let cells = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'].map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0; i<lead; i++) cells += '<span></span>';
+  for(let d=1; d<=total; d++){
+    const arr = by[d];
+    const dot = arr ? `<i style="--dot:${worst(arr).color}"></i>` : '';
+    const cnt = arr && arr.length > 1 ? `<em>${arr.length}</em>` : '';
+    const dow = new Date(y, m, d).getDay();
+    cells += `<button class="cal-day${isNow && d === t.getDate() ? ' today' : ''}${d === calSel ? ' sel' : ''}${dow === 0 ? ' weekend' : ''}" data-d="${d}" aria-label="${d} ${label}${arr ? ', ' + arr.length + ' pengingat' : ''}">${d}${cnt}${dot}</button>`;
+  }
+  const sel = (by[calSel] || []).slice().sort(SORTS.terdekat);
+  const rows = sel.length ? sel.map(r=>`<div class="cal-row" data-id="${r.id}" style="--dot:${statusOf(r, now).color}"><span>${escapeHtml(r.nama)}<br><small>${escapeHtml(r.grup || 'Lainnya')} · ${statusOf(r, now).label}</small></span><small>${new Date(r.tanggal).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</small></div>`).join('')
+    : '<div class="empty" style="margin-top:12px;padding:22px;">Tidak ada pengingat pada tanggal ini.</div>';
+  const pad = n => String(n).padStart(2,'0');
+  const selDate = calSel ? `${y}-${pad(m+1)}-${pad(calSel)}` : '';
+  list.innerHTML = `<div class="cal-head"><button class="cal-nav" id="calPrev" aria-label="Bulan sebelumnya">‹</button><b>${label}</b>
+      <div class="cal-tools"><button class="cal-today" id="calToday">Hari ini</button><button class="cal-nav" id="calNext" aria-label="Bulan berikutnya">›</button></div></div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-sub"><span>${monthCount ? monthCount + ' pengingat bulan ini' : 'Tidak ada pengingat bulan ini'}</span>
+      <span class="cal-legend"><span style="--dot:var(--green)"><i></i>Aman</span><span style="--dot:var(--amber)"><i></i>Segera</span><span style="--dot:var(--red)"><i></i>Mendesak/lewat</span></span></div>
+    ${calSel ? `<div class="drawer-divider" style="padding-left:0;">${calSel} ${label}</div>${rows}<button class="btn-ghost cal-addbtn" id="calAdd">+ Tambah pengingat di tanggal ini</button>` : ''}`;
+  const go = (dt, sel) => { calMonth = new Date(dt.getFullYear(), dt.getMonth(), 1); calSel = sel; render(); };
+  list.querySelector('#calPrev').addEventListener('click', ()=> go(new Date(y, m - 1, 1), null));
+  list.querySelector('#calNext').addEventListener('click', ()=> go(new Date(y, m + 1, 1), null));
+  list.querySelector('#calToday').addEventListener('click', ()=> go(new Date(), new Date().getDate()));
+  list.querySelectorAll('.cal-day').forEach(b=> b.addEventListener('click', ()=>{ calSel = +b.dataset.d; render(); }));
+  list.querySelectorAll('.cal-row').forEach(el=> el.addEventListener('click', ()=> openModal(reminders.find(r=>r.id === el.dataset.id))));
+  const add = list.querySelector('#calAdd'); if(add) add.addEventListener('click', ()=> openModal(null, selDate));
+}
+const pdfOverlay = document.getElementById('pdfOverlay');
+document.getElementById('btnPdf').addEventListener('click', ()=>{
+  if(!reminders.length){ alert('Belum ada data untuk dibuat laporan.'); return; }
+  closeDrawer();
+  pdfOverlay.classList.add('show');
+});
+document.getElementById('pdfBatal').addEventListener('click', ()=> pdfOverlay.classList.remove('show'));
+pdfOverlay.addEventListener('click', (e)=>{ if(e.target === pdfOverlay) pdfOverlay.classList.remove('show'); });
+document.getElementById('pdfBuat').addEventListener('click', ()=>{
+  const now = Date.now(), scope = document.getElementById('pdfScope').value;
+  const judul = document.getElementById('pdfJudul').value.trim() || 'Laporan Pengingat Dokumen';
+  const oleh = document.getElementById('pdfOleh').value.trim();
+  const withNote = document.getElementById('pdfCatatan').checked;
+  let items = reminders.slice();
+  if(scope === 'aktif') items = items.filter(r => !r.selesai);
+  else if(scope === 'tindakan') items = items.filter(r => !r.selesai && ['lewat','mendesak','segera'].includes(statusOf(r, now).level));
+  else if(scope === '30' || scope === '90') items = items.filter(r => !r.selesai && new Date(r.tanggal) - now <= parseInt(scope, 10) * 86400000);
+  items.sort(SORTS.terdekat);
+  if(!items.length){ alert('Tidak ada data untuk cakupan yang dipilih.'); return; }
+  const scopeLabel = { aktif:'Semua pengingat aktif', tindakan:'Perlu tindakan', '30':'Jatuh tempo ≤ 30 hari', '90':'Jatuh tempo ≤ 90 hari', semua:'Semua pengingat (termasuk selesai)' }[scope];
+  const col = { selesai:'#64748B', aman:'#15803D', segera:'#B45309', mendesak:'#B91C1C', lewat:'#B91C1C' };
+  const c = { aman:0, segera:0, mendesak:0, lewat:0, selesai:0 };
+  items.forEach(r => c[statusOf(r, now).level]++);
+  const totalBiaya = items.filter(r => !r.selesai && r.biaya).reduce((t, r) => t + r.biaya, 0);
+  const e = escapeHtml;
+  const rows = items.map((r, i) => {
+    const st = statusOf(r, now);
+    return `<tr><td class="n">${i + 1}</td><td><b>${e(r.nama)}</b>${withNote && r.catatan ? `<div class="note">${e(r.catatan)}</div>` : ''}${(r.checklist || []).length ? `<div class="note">Daftar periksa: ${r.checklist.filter(c=>c.d).length}/${r.checklist.length}</div>` : ''}</td><td>${e(r.grup || 'Lainnya')}</td><td>${e(fmtShort(r.tanggal))}<div class="note">${e(relText(r, new Date(r.tanggal) - now))}${r.ulang !== 'tidak' ? ' · ' + e(ulangLabel(r)) : ''}</div></td><td><span class="st" style="color:${col[st.level]};border-color:${col[st.level]}">${e(st.label)}</span></td><td class="r">${r.biaya ? e(fmtRp(r.biaya)) : '–'}</td></tr>`;
+  }).join('');
+  const tgl = new Date().toLocaleString('id-ID', {dateStyle:'long', timeStyle:'short'});
+  const html = `<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${e(judul)}</title><style>
+    @page{size:A4;margin:16mm 14mm 18mm}
+    *{box-sizing:border-box}
+    body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;color:#0F172A;font-size:11px;line-height:1.45;margin:0}
+    header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2.5px solid #4F46E5;padding-bottom:10px;margin-bottom:14px}
+    h1{font-size:20px;margin:0;letter-spacing:-.02em}
+    .meta{color:#64748B;font-size:10.5px;text-align:right}
+    .sum{display:flex;gap:8px;margin-bottom:14px}
+    .box{flex:1;border:1px solid #E3E8F2;border-radius:8px;padding:8px 10px}
+    .box b{display:block;font-size:17px}.box span{color:#64748B;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em}
+    table{width:100%;border-collapse:collapse}
+    th{background:#F3F5FA;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:#475569;padding:7px 8px;border-bottom:1.5px solid #CBD5E1}
+    td{padding:7px 8px;border-bottom:1px solid #E3E8F2;vertical-align:top}
+    tr{break-inside:avoid}
+    .n{width:24px;color:#64748B}.r{text-align:right;white-space:nowrap}
+    .note{color:#64748B;font-size:9.5px;margin-top:2px}
+    .st{border:1px solid;border-radius:999px;padding:1px 8px;font-size:9.5px;font-weight:700;white-space:nowrap}
+    tfoot td{font-weight:700;border-top:2px solid #CBD5E1;border-bottom:0}
+    footer{margin-top:16px;color:#94A3B8;font-size:9.5px;text-align:center}
+    </style></head><body>
+    <header><div><h1>${e(judul)}</h1><div class="meta" style="text-align:left;margin-top:3px">${e(scopeLabel)}</div></div>
+    <div class="meta">Dibuat ${e(tgl)}${oleh ? '<br>Oleh ' + e(oleh) : ''}</div></header>
+    <div class="sum"><div class="box"><b>${items.length}</b><span>Total</span></div><div class="box"><b style="color:#B91C1C">${c.lewat + c.mendesak}</b><span>Mendesak / lewat</span></div><div class="box"><b style="color:#B45309">${c.segera}</b><span>Segera</span></div><div class="box"><b style="color:#15803D">${c.aman}</b><span>Aman</span></div>${c.selesai ? `<div class="box"><b>${c.selesai}</b><span>Selesai</span></div>` : ''}</div>
+    <table><thead><tr><th>#</th><th>Pengingat</th><th>Grup</th><th>Jatuh tempo</th><th>Status</th><th class="r">Biaya</th></tr></thead><tbody>${rows}</tbody>
+    <tfoot><tr><td colspan="5" class="r">Estimasi total biaya (belum selesai)</td><td class="r">${e(fmtRp(totalBiaya))}</td></tr></tfoot></table>
+    <footer>Pengingat Dokumen · dicetak dari aplikasi di perangkat ini</footer></body></html>`;
+  pdfOverlay.classList.remove('show');
+  const fr = document.createElement('iframe');
+  fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(fr);
+  const w = fr.contentWindow, d = fr.contentDocument;
+  d.open(); d.write(html); d.close();
+  const cleanup = ()=> setTimeout(()=> fr.remove(), 1500);
+  w.addEventListener('afterprint', cleanup);
+  setTimeout(()=>{ try{ w.focus(); w.print(); }catch(err){ alert('Gagal membuka jendela cetak di browser ini.'); fr.remove(); } }, 350);
+  logAktivitas('backup', 'Membuat laporan PDF (' + items.length + ' pengingat)');
+});
+document.getElementById('btnCsv').addEventListener('click', ()=>{
+  if(!reminders.length){ alert('Belum ada data untuk diekspor.'); return; }
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const rows = [['Nama','Grup','Jatuh Tempo','Berulang','Peringatan (hari)','Biaya (Rp)','Catatan','Status']];
+  reminders.slice().sort(SORTS.terdekat).forEach(r=> rows.push([r.nama, r.grup || 'Lainnya', String(r.tanggal).replace('T',' '), ulangLabel(r), r.hariPeringatan, r.biaya || '', r.catatan || '', statusOf(r, Date.now()).label]));
+  const blob = new Blob(['\ufeff' + rows.map(r=>r.map(q).join(';')).join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `pengingat-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+  logAktivitas('backup', 'Mengekspor data ke CSV');
+});
+document.getElementById('btnWa').addEventListener('click', ()=>{
+  const now = Date.now();
+  const items = reminders.filter(r=>!r.selesai && ['lewat','mendesak','segera'].includes(statusOf(r, now).level)).sort(SORTS.terdekat);
+  if(!items.length){ alert('Tidak ada pengingat yang perlu tindakan saat ini.'); return; }
+  const text = '📌 *Pengingat Dokumen*\n' + items.map(r=>`• ${r.nama} — ${fmtDate(r.tanggal)} (${statusOf(r, now).label})`).join('\n');
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+});
+
+// ---------- Kelola Grup ----------
+const grupOverlay = document.getElementById('grupOverlay');
+const EMOJIS = ['🎂','🚗','🪪','🏥','📶','💵','🏠','📄','🎓','💼','✈️','🛡️','📱','⚡'];
+let grupEmojiSel = EMOJIS[0];
+function pickEmoji(e){
+  grupEmojiSel = e;
+  document.querySelectorAll('#emojiPick button').forEach(b=> b.classList.toggle('on', b.textContent === e));
+}
+document.getElementById('emojiPick').innerHTML = EMOJIS.map(e=>`<button type="button">${e}</button>`).join('');
+document.querySelectorAll('#emojiPick button').forEach(b=> b.addEventListener('click', ()=> pickEmoji(b.textContent)));
+function openGrupModal(g){
+  document.getElementById('grupTitle').textContent = g ? 'Ubah Grup' : 'Tambah Grup';
+  document.getElementById('grupEditNama').value = g ? g.nama : '';
+  document.getElementById('fGrupNama').value = g ? g.nama : '';
+  pickEmoji(g ? g.emoji : EMOJIS[0]);
+  grupOverlay.classList.add('show');
+}
+document.getElementById('btnGrupBatal').addEventListener('click', ()=> grupOverlay.classList.remove('show'));
+grupOverlay.addEventListener('click', (e)=>{ if(e.target === grupOverlay) grupOverlay.classList.remove('show'); });
+document.getElementById('btnGrupSimpan').addEventListener('click', ()=>{
+  const nama = document.getElementById('fGrupNama').value.trim();
+  const lama = document.getElementById('grupEditNama').value;
+  if(!nama){ alert('Isi nama grup dulu.'); return; }
+  if(allGrups().some(g=> g.nama.toLowerCase() === nama.toLowerCase() && g.nama.toLowerCase() !== lama.toLowerCase())){
+    alert('Nama grup sudah ada.'); return;
+  }
+  if(lama){
+    const i = grupData.findIndex(g=> g.nama.toLowerCase() === lama.toLowerCase());
+    const baru = {nama, emoji: grupEmojiSel};
+    if(i >= 0) grupData[i] = baru; else grupData.push(baru);
+    reminders.forEach(r=>{ if((r.grup || 'Lainnya').toLowerCase() === lama.toLowerCase()) r.grup = nama; });
+    saveReminders();
+    logAktivitas('grup', 'Mengubah grup "' + lama + '" menjadi "' + nama + '"');
+  }else{
+    grupData.push({nama, emoji: grupEmojiSel});
+    logAktivitas('grup', 'Menambah grup "' + nama + '"');
+  }
+  saveGrups();
+  grupOverlay.classList.remove('show');
+  render();
+});
+function renderKelola(list){
+  const arr = allGrups();
+  list.innerHTML = '<button class="btn-primary" id="btnGrupBaru" style="width:100%;margin-bottom:14px;">+ Grup Baru</button>'
+    + arr.map((g,i)=>{
+      const n = reminders.filter(r=> (r.grup || 'Lainnya').toLowerCase() === g.nama.toLowerCase()).length;
+      const fixed = g.nama.toLowerCase() === 'lainnya';
+      return `<div class="grup-item"><span class="gi-ic">${g.emoji}</span><div class="gi-tx"><b>${escapeHtml(g.nama)}</b><small>${n} pengingat</small></div>`
+        + (fixed ? '' : `<button class="icon-btn" data-edit="${i}">Ubah</button><button class="icon-btn danger" data-del="${i}">Hapus</button>`) + '</div>';
+    }).join('');
+  list.querySelector('#btnGrupBaru').addEventListener('click', ()=> openGrupModal(null));
+  list.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click', ()=> openGrupModal(arr[+b.dataset.edit])));
+  list.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=>{
+    const g = arr[+b.dataset.del];
+    const n = reminders.filter(r=> (r.grup || 'Lainnya').toLowerCase() === g.nama.toLowerCase()).length;
+    if(!confirm(`Hapus grup "${g.nama}"?` + (n ? ` ${n} pengingat akan dipindah ke "Lainnya".` : ''))) return;
+    reminders.forEach(r=>{ if((r.grup || 'Lainnya').toLowerCase() === g.nama.toLowerCase()) r.grup = 'Lainnya'; });
+    grupData = grupData.filter(x=> x.nama.toLowerCase() !== g.nama.toLowerCase());
+    saveReminders(); saveGrups();
+    logAktivitas('grup', 'Menghapus grup "' + g.nama + '"');
+    render();
+  }));
+}
+
+// ---------- Riwayat Aktivitas ----------
+const JENIS = {tambah:['➕','var(--blue)'], edit:['✏️','var(--amber)'], hapus:['🗑️','var(--red)'], selesai:['✅','var(--green)'],
+  jadwal:['🗓️','var(--amber)'], lunas:['💰','var(--green)'], aktif:['↩️','var(--blue)'], grup:['🗂️','var(--accent)'], backup:['💾','var(--blue)'], notif:['🔔','var(--amber)'], keamanan:['🔒','var(--accent)'], brankas:['🔐','var(--accent)']};
+function renderRiwayat(list){
+  if(!riwayat.length){ list.innerHTML = '<div class="empty">Belum ada aktivitas tercatat. Aktivitas seperti menambah, mengubah, dan menyelesaikan pengingat akan muncul di sini.</div>'; return; }
+  const today = new Date().toDateString(), kemarin = new Date(Date.now() - 864e5).toDateString();
+  let out = '', last = '';
+  riwayat.forEach(e=>{
+    const d = new Date(e.t), ds = d.toDateString();
+    if(ds !== last){
+      last = ds;
+      out += `<div class="drawer-divider" style="padding-left:0;">${ds === today ? 'Hari ini' : ds === kemarin ? 'Kemarin' : d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}</div>`;
+    }
+    const j = JENIS[e.jenis] || ['•','var(--text-dim)'];
+    out += `<div class="log-row" style="--c:${j[1]}"><span class="log-ic">${j[0]}</span><div><div>${escapeHtml(e.teks)}</div><small>${d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}</small></div></div>`;
+  });
+  out += '<button class="btn-ghost" id="btnClearLog" style="width:100%;margin-top:14px;color:var(--red);">Hapus Riwayat</button>';
+  list.innerHTML = out;
+  list.querySelector('#btnClearLog').addEventListener('click', ()=>{
+    if(!confirm('Hapus seluruh riwayat aktivitas?')) return;
+    riwayat = [];
+    try{ localStorage.removeItem(LOG_KEY); }catch(e){}
+    render();
+  });
+}
+
+document.getElementById('list').addEventListener('click', (e)=>{
+  const m = e.target.closest('.card-main');
+  if(m) m.parentElement.classList.toggle('open');
+});
+
+// ---------- Riwayat Pembayaran, Anggaran & Proyeksi, Anggota & Profil ----------
+const PROFIL_KEY = 'pengingat-profil-v1';
+const ANGGARAN_KEY = 'pengingat-anggaran-v1';
+let profilData = [];
+let anggaranData = { bulanan: 0 };
+const fxAttr = s => escapeHtml(String(s == null ? '' : s)).replace(/"/g, '&quot;');
+function normProfil(a){
+  if(!Array.isArray(a)) return [];
+  return a.filter(p => p && p.id && p.nama).map(p => ({
+    id: String(p.id).replace(/[^\w-]/g, ''), nama: String(p.nama).slice(0, 30),
+    emoji: String(p.emoji || '👤').slice(0, 8), hubungan: String(p.hubungan || '').slice(0, 30)
+  })).filter(p => p.id);
+}
+function normAnggaran(a){
+  const n = a && typeof a.bulanan === 'number' && isFinite(a.bulanan) ? Math.max(0, Math.round(a.bulanan)) : 0;
+  return { bulanan: n };
+}
+function loadProfil(){
+  try{ profilData = normProfil(JSON.parse(localStorage.getItem(PROFIL_KEY) || '[]')); }catch(e){ profilData = []; }
+  try{ anggaranData = normAnggaran(JSON.parse(localStorage.getItem(ANGGARAN_KEY) || '{}')); }catch(e){ anggaranData = { bulanan: 0 }; }
+}
+function saveProfil(){ try{ localStorage.setItem(PROFIL_KEY, JSON.stringify(profilData)); }catch(e){} markChange(); }
+function saveAnggaran(){ try{ localStorage.setItem(ANGGARAN_KEY, JSON.stringify(anggaranData)); }catch(e){} markChange(); }
+function profilImport(pro, ang){
+  if(Array.isArray(pro)){ profilData = normProfil(pro); saveProfil(); }
+  if(ang && typeof ang === 'object'){ anggaranData = normAnggaran(ang); saveAnggaran(); }
+}
+loadProfil();
+function profilById(id){ return id ? (profilData.find(p => p.id === id) || null) : null; }
+function profilLabel(id){ const p = profilById(id); return p ? p.emoji + ' ' + p.nama : ''; }
+function pemilikTag(r){ const p = profilById(r.pemilik); return p ? ' · ' + escapeHtml(p.emoji) + ' ' + escapeHtml(p.nama) : ''; }
+function profilOptions(selected, kosong){
+  return '<option value="">' + escapeHtml(kosong) + '</option>' + profilData.map(p =>
+    `<option value="${fxAttr(p.id)}"${p.id === selected ? ' selected' : ''}>${escapeHtml(p.emoji + ' ' + p.nama)}</option>`).join('');
+}
+function profilFillSelect(selected){
+  const sel = document.getElementById('fPemilik');
+  sel.innerHTML = profilOptions(profilById(selected) ? selected : '', '— Tanpa pemilik —');
+}
+function fxBulanLabel(ms){ return new Date(ms).toLocaleDateString('id-ID', {month:'long', year:'numeric'}); }
+function fxTglPendek(ms){ return new Date(ms).toLocaleDateString('id-ID', {day:'numeric', month:'short'}); }
+
+// ----- Riwayat Pembayaran -----
+let byrFilter = { tahun:'semua', bulan:'semua', grup:'semua', pemilik:'semua' };
+function byrAll(){
+  const out = [];
+  reminders.forEach(r => (r.bayar || []).forEach(b => {
+    const t = new Date(b.t).getTime();
+    if(isNaN(t)) return;
+    out.push({ nama:r.nama, grup:r.grup || 'Lainnya', pemilik:r.pemilik || '', t, due:b.due || null,
+      jumlah:typeof b.jumlah === 'number' ? b.jumlah : 0, ada:typeof b.jumlah === 'number' });
+  }));
+  return out.sort((a, b) => b.t - a.t);
+}
+function byrFiltered(all){
+  const f = byrFilter;
+  return all.filter(p => {
+    const d = new Date(p.t);
+    return (f.tahun === 'semua' || d.getFullYear() === +f.tahun)
+      && (f.bulan === 'semua' || d.getMonth() === +f.bulan)
+      && (f.grup === 'semua' || p.grup === f.grup)
+      && (f.pemilik === 'semua' || (f.pemilik === 'none' ? !profilById(p.pemilik) : p.pemilik === f.pemilik));
+  });
+}
+function byrExport(rows){
+  if(!rows.length){ alert('Tidak ada pembayaran untuk diekspor.'); return; }
+  const q = v => {
+    if(typeof v === 'number') return String(v);
+    let s = String(v == null ? '' : v);
+    if(/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const data = [['Tanggal Bayar','Nama','Grup','Pemilik','Jatuh Tempo','Jumlah (Rp)']];
+  rows.forEach(p => data.push([toLocalInput(p.t).slice(0, 10), p.nama, p.grup, profilLabel(p.pemilik), p.due ? String(p.due).replace('T', ' ') : '', p.ada ? p.jumlah : '']));
+  const blob = new Blob(['\ufeff' + data.map(r => r.map(q).join(';')).join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `riwayat-pembayaran-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+  logAktivitas('backup', 'Mengekspor riwayat pembayaran ke CSV (' + rows.length + ' baris)');
+  showToast('Riwayat pembayaran diekspor');
+}
+function renderPembayaran(list){
+  const all = byrAll();
+  if(!all.length){
+    list.innerHTML = '<div class="empty">Belum ada pembayaran tercatat. Saat kamu menandai pengingat sebagai lunas / diperpanjang, pembayarannya otomatis muncul di sini.</div>';
+    return;
+  }
+  const f = byrFilter;
+  const years = [...new Set(all.map(p => new Date(p.t).getFullYear()))].sort((a, b) => b - a);
+  const grups = [...new Set(all.map(p => p.grup))].sort((a, b) => a.localeCompare(b));
+  if(f.tahun !== 'semua' && !years.includes(+f.tahun)) f.tahun = 'semua';
+  if(f.grup !== 'semua' && !grups.includes(f.grup)) f.grup = 'semua';
+  if(f.pemilik !== 'semua' && f.pemilik !== 'none' && !profilById(f.pemilik)) f.pemilik = 'semua';
+  const rows = byrFiltered(all);
+  const opt = (v, label, cur) => `<option value="${fxAttr(v)}"${String(cur) === String(v) ? ' selected' : ''}>${escapeHtml(label)}</option>`;
+  const bulanNama = Array.from({length:12}, (_, i) => new Date(2000, i, 1).toLocaleDateString('id-ID', {month:'long'}));
+  let out = '<div class="toolbar">'
+    + '<select data-byr="tahun" aria-label="Tahun">' + opt('semua', 'Semua tahun', f.tahun) + years.map(y => opt(y, 'Tahun ' + y, f.tahun)).join('') + '</select>'
+    + '<select data-byr="bulan" aria-label="Bulan">' + opt('semua', 'Semua bulan', f.bulan) + bulanNama.map((n, i) => opt(i, n, f.bulan)).join('') + '</select></div>'
+    + '<div class="toolbar"><select data-byr="grup" aria-label="Grup">' + opt('semua', 'Semua grup', f.grup) + grups.map(g => opt(g, g, f.grup)).join('') + '</select>'
+    + (profilData.length ? '<select data-byr="pemilik" aria-label="Pemilik">' + opt('semua', 'Semua pemilik', f.pemilik) + opt('none', 'Tanpa pemilik', f.pemilik) + profilData.map(p => opt(p.id, p.emoji + ' ' + p.nama, f.pemilik)).join('') + '</select>' : '')
+    + '</div>';
+  if(!rows.length){
+    out += '<div class="empty">Tidak ada pembayaran yang cocok dengan filter ini.</div>'
+      + '<button class="btn-ghost" id="byrReset" style="width:100%;margin-top:12px;">Atur ulang filter</button>';
+  }else{
+    const total = rows.reduce((t, p) => t + p.jumlah, 0);
+    const bernilai = rows.filter(p => p.ada && p.jumlah > 0);
+    const rata = bernilai.length ? Math.round(total / bernilai.length) : 0;
+    const maks = bernilai.reduce((m, p) => Math.max(m, p.jumlah), 0);
+    out += `<div class="kpi"><div><b>${fmtRp(total)}</b><span>Total dibayar</span></div><div><b>${rows.length}</b><span>Transaksi</span></div>`
+      + `<div><b>${fmtRp(rata)}</b><span>Rata-rata per transaksi</span></div><div><b>${fmtRp(maks)}</b><span>Pembayaran terbesar</span></div></div>`;
+    let lastKey = '', sum = {}, order = [];
+    rows.forEach(p => {
+      const d = new Date(p.t), k = d.getFullYear() * 100 + d.getMonth();
+      if(!sum[k]){ sum[k] = { total:0, n:0, html:'', label:fxBulanLabel(p.t) }; order.push(k); }
+      sum[k].total += p.jumlah; sum[k].n++;
+      const sub = [p.grup, profilLabel(p.pemilik), p.due ? 'jatuh tempo ' + fmtShort(p.due) : ''].filter(Boolean).map(escapeHtml).join(' · ');
+      sum[k].html += `<div class="fx-row"><span>${escapeHtml(fxTglPendek(p.t))} · ${escapeHtml(p.nama)}<small>${sub}</small></span><b>${p.ada ? fmtRp(p.jumlah) : '–'}</b></div>`;
+    });
+    order.forEach(k => {
+      out += `<div class="drawer-divider" style="padding-left:0;display:flex;justify-content:space-between;"><span>${escapeHtml(sum[k].label)} · ${sum[k].n}x</span><span>${fmtRp(sum[k].total)}</span></div>` + sum[k].html;
+    });
+    out += '<button class="btn-ghost" id="byrCsv" style="width:100%;margin-top:16px;">📑 Ekspor hasil filter ke CSV</button>';
+  }
+  list.innerHTML = out;
+  list.querySelectorAll('[data-byr]').forEach(sel => sel.addEventListener('change', () => { byrFilter[sel.dataset.byr] = sel.value; render(); }));
+  const rs = list.querySelector('#byrReset');
+  if(rs) rs.addEventListener('click', () => { byrFilter = { tahun:'semua', bulan:'semua', grup:'semua', pemilik:'semua' }; render(); });
+  const cs = list.querySelector('#byrCsv');
+  if(cs) cs.addEventListener('click', () => byrExport(rows));
+}
+
+// ----- Anggaran & Proyeksi -----
+function angOccurrences(now, days){
+  const out = [], end = now + days * 864e5;
+  reminders.forEach(r => {
+    if(r.selesai || !r.biaya) return;
+    const rec = r.ulang && r.ulang !== 'tidak' && recurOf(r);
+    let t = r.tanggal, first = true;
+    for(let g = 0; t && g < 800; g++){
+      const ms = new Date(t).getTime();
+      if(isNaN(ms) || ms > end) break;
+      if(first || ms >= now) out.push({ r, ms, biaya:r.biaya });
+      first = false;
+      if(!rec) break;
+      t = addCycle(t, r.ulang, r);
+    }
+  });
+  return out.sort((a, b) => a.ms - b.ms);
+}
+function angItemRow(o){
+  const sub = [o.r.grup || 'Lainnya', profilLabel(o.r.pemilik), o.r.ulang && o.r.ulang !== 'tidak' ? ulangLabel(o.r) : ''].filter(Boolean).map(escapeHtml).join(' · ');
+  return `<div class="fx-row"><span>${escapeHtml(fxTglPendek(o.ms))} · ${escapeHtml(o.r.nama)}<small>${sub}</small></span><b>${fmtRp(o.biaya)}</b></div>`;
+}
+function renderAnggaran(list){
+  const now = Date.now(), cur = new Date(now), B = anggaranData.bulanan;
+  const months = [];
+  for(let i = 0; i < 12; i++){
+    const d = new Date(cur.getFullYear(), cur.getMonth() + i, 1);
+    months.push({ y:d.getFullYear(), m:d.getMonth(), label:d.toLocaleDateString('id-ID', {month:'short'}), full:d.toLocaleDateString('id-ID', {month:'long', year:'numeric'}), proj:0, bayar:0, tunggak:0, items:[] });
+  }
+  const startMs = new Date(cur.getFullYear(), cur.getMonth(), 1).getTime();
+  const endMs = new Date(cur.getFullYear(), cur.getMonth() + 12, 1).getTime();
+  const occ = angOccurrences(now, 400);
+  const lewat = [], jendela = [];
+  occ.forEach(o => {
+    if(o.ms < now){ lewat.push(o); jendela.push(o); months[0].tunggak += o.biaya; return; }
+    if(o.ms >= endMs) return;
+    const d = new Date(o.ms), mo = months.find(x => x.y === d.getFullYear() && x.m === d.getMonth());
+    if(mo){ mo.proj += o.biaya; mo.items.push(o); jendela.push(o); }
+  });
+  paymentsAll().forEach(p => { if(p.t >= startMs && p.t < new Date(cur.getFullYear(), cur.getMonth() + 1, 1).getTime()) months[0].bayar += p.jumlah; });
+  const sumOf = arr => arr.reduce((t, o) => t + o.biaya, 0);
+  const totalLewat = sumOf(lewat), total12 = sumOf(jendela);
+  const tanpaBiaya = reminders.filter(r => !r.selesai && !r.biaya).length;
+  let out = `<div class="fx-box"><h3>🎯 Anggaran per bulan</h3><div class="fx-inline"><input type="number" id="angInput" min="0" step="50000" inputmode="numeric" placeholder="Contoh: 2000000" value="${B || ''}"><button class="btn-primary" id="angSimpan">Simpan</button></div>`
+    + '<div class="hint">Dibandingkan dengan pembayaran yang sudah dicatat bulan ini ditambah estimasi tagihan yang akan datang. Kosongkan untuk menonaktifkan.</div></div>';
+  if(!occ.length && !months[0].bayar){
+    out += '<div class="empty">Belum ada pengingat aktif dengan estimasi biaya. Isi kolom "Estimasi biaya" pada pengingat (mis. pajak STNK, BPJS, tagihan) supaya proyeksi pengeluaran muncul di sini.</div>';
+    list.innerHTML = out; angBind(list); return;
+  }
+  const n30 = sumOf(occ.filter(o => o.ms <= now + 30 * 864e5)), n90 = sumOf(occ.filter(o => o.ms <= now + 90 * 864e5));
+  out += `<div class="kpi"><div><b>${fmtRp(n30)}</b><span>Estimasi 30 hari</span></div><div><b>${fmtRp(n90)}</b><span>Estimasi 90 hari</span></div>`
+    + `<div><b>${fmtRp(total12)}</b><span>Estimasi 12 bulan</span></div><div><b>${fmtRp(Math.round(total12 / 12))}</b><span>Rata-rata per bulan</span></div>`
+    + `<div><b class="${totalLewat ? 'fx-over' : ''}">${fmtRp(totalLewat)}</b><span>Tertunggak (${lewat.length})</span></div><div><b>${fmtRp(months[0].bayar)}</b><span>Sudah dibayar bulan ini</span></div></div>`;
+  const totals = months.map((mo, i) => mo.proj + (i === 0 ? mo.bayar + mo.tunggak : 0));
+  const max = Math.max(1, B, ...totals);
+  out += '<div class="drawer-divider" style="padding-left:0;">Proyeksi 12 bulan ke depan</div>';
+  out += '<div class="bars" role="img" aria-label="Grafik proyeksi pengeluaran per bulan">' + months.map((mo, i) => {
+    const t = totals[i], h = t ? Math.max(3, Math.round(t / max * 100)) : 0;
+    const col = B > 0 && t > B ? 'var(--red)' : B > 0 && t > B * 0.8 ? 'var(--amber)' : '';
+    return `<div class="bcol" title="${fxAttr(mo.full)}: ${fxAttr(fmtRp(t))}">${t ? `<span class="v">${fmtCompact(t)}</span>` : ''}<div class="bar${t ? '' : ' zero'}" style="height:${t ? h * 0.78 : 2}%${col ? ';background:' + col : ''}"></div><small>${escapeHtml(mo.label)}</small></div>`;
+  }).join('') + '</div>';
+  if(B > 0) out += `<div class="hint" style="margin-top:8px;">Anggaran ${fmtRp(B)} per bulan. Batang <span class="fx-warn">kuning</span> = di atas 80%, <span class="fx-over">merah</span> = melebihi anggaran.</div>`;
+  out += '<div class="drawer-divider" style="padding-left:0;">Rincian per bulan</div>';
+  if(lewat.length){
+    out += `<details class="fx-mon" open><summary><div class="fx-h"><span class="fx-over">⚠️ Tertunggak</span><b class="fx-over">${fmtRp(totalLewat)}</b></div><div class="fx-s">${lewat.length} tagihan sudah lewat jatuh tempo, belum ditandai lunas. Dihitung sebagai kebutuhan bulan ini.</div></summary><div class="fx-body">${lewat.map(angItemRow).join('')}</div></details>`;
+  }
+  months.forEach((mo, i) => {
+    const t = totals[i];
+    if(!t && i > 0) return;
+    let status = '', bar = '';
+    if(B > 0){
+      const pct = Math.round(t / B * 100), selisih = B - t;
+      status = selisih >= 0 ? `<span class="fx-ok">Sisa anggaran ${fmtRp(selisih)}</span>` : `<span class="fx-over">Melebihi ${fmtRp(-selisih)}</span>`;
+      bar = `<div class="fx-prog"><i style="width:${Math.min(100, pct)}%;background:${t > B ? 'var(--red)' : t > B * 0.8 ? 'var(--amber)' : 'var(--green)'}"></i></div>`;
+    }
+    const sub = i === 0 ? `Dibayar ${fmtRp(mo.bayar)} · akan datang ${fmtRp(mo.proj)}${mo.tunggak ? ' · tertunggak ' + fmtRp(mo.tunggak) : ''}` : `${mo.items.length} tagihan`;
+    out += `<details class="fx-mon"${i === 0 ? ' open' : ''}><summary><div class="fx-h"><span>${escapeHtml(mo.full)}</span><b>${fmtRp(t)}</b></div><div class="fx-s">${sub}${status ? ' · ' + status : ''}</div>${bar}</summary>`
+      + `<div class="fx-body">${mo.items.length ? mo.items.map(angItemRow).join('') : '<div class="fx-row"><span>Tidak ada tagihan lain yang terjadwal.</span></div>'}</div></details>`;
+  });
+  const per = (keyFn) => { const m = {}; jendela.forEach(o => { const k = keyFn(o); m[k] = (m[k] || 0) + o.biaya; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+  const hb = (arr, judul) => {
+    if(!arr.length) return '';
+    const mx = arr[0][1] || 1;
+    return `<div class="drawer-divider" style="padding-left:0;">${judul}</div>` + arr.map(([g, n]) =>
+      `<div class="hbar"><div class="t"><span>${escapeHtml(g)}</span><b>${fmtRp(n)}</b></div><div class="tr"><i style="width:${Math.max(2, Math.round(n / mx * 100))}%"></i></div></div>`).join('');
+  };
+  out += hb(per(o => o.r.grup || 'Lainnya'), 'Proyeksi per grup (12 bulan)');
+  if(profilData.length) out += hb(per(o => profilLabel(o.r.pemilik) || 'Tanpa pemilik'), 'Proyeksi per pemilik (12 bulan)');
+  if(tanpaBiaya) out += `<div class="hint" style="margin-top:14px;">${tanpaBiaya} pengingat aktif belum punya estimasi biaya, jadi belum masuk proyeksi. Isi lewat tombol Edit.</div>`;
+  list.innerHTML = out;
+  angBind(list);
+}
+function angBind(list){
+  const simpan = () => {
+    const raw = document.getElementById('angInput').value;
+    const n = raw === '' ? 0 : Math.max(0, parseInt(raw, 10) || 0);
+    anggaranData.bulanan = n;
+    saveAnggaran();
+    logAktivitas('edit', n ? 'Mengatur anggaran bulanan ' + fmtRp(n) : 'Menonaktifkan anggaran bulanan');
+    showToast(n ? 'Anggaran disimpan' : 'Anggaran dinonaktifkan');
+    render();
+  };
+  list.querySelector('#angSimpan').addEventListener('click', simpan);
+  list.querySelector('#angInput').addEventListener('keydown', e => { if(e.key === 'Enter') simpan(); });
+}
+
+// ----- Anggota & Profil -----
+const profilOverlay = document.getElementById('profilOverlay');
+const PROFIL_EMOJIS = ['👤','👨','👩','🧑','👦','👧','👴','👵','👶','🏠','🚗','🏍️'];
+let profilEmojiSel = PROFIL_EMOJIS[0];
+function profilPickEmoji(e){
+  profilEmojiSel = e;
+  document.querySelectorAll('#profilEmojiPick button').forEach(b => b.classList.toggle('on', b.textContent === e));
+}
+document.getElementById('profilEmojiPick').innerHTML = PROFIL_EMOJIS.map(e => `<button type="button">${e}</button>`).join('');
+document.querySelectorAll('#profilEmojiPick button').forEach(b => b.addEventListener('click', () => profilPickEmoji(b.textContent)));
+function openProfilModal(p){
+  document.getElementById('profilTitle').textContent = p ? 'Ubah Anggota' : 'Tambah Anggota';
+  document.getElementById('profilEditId').value = p ? p.id : '';
+  document.getElementById('fProfilNama').value = p ? p.nama : '';
+  document.getElementById('fProfilHub').value = p ? p.hubungan : '';
+  profilPickEmoji(p ? p.emoji : PROFIL_EMOJIS[0]);
+  profilOverlay.classList.add('show');
+  setTimeout(() => document.getElementById('fProfilNama').focus(), 50);
+}
+document.getElementById('btnProfilBatal').addEventListener('click', () => profilOverlay.classList.remove('show'));
+profilOverlay.addEventListener('click', e => { if(e.target === profilOverlay) profilOverlay.classList.remove('show'); });
+function profilBaruId(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+document.getElementById('btnProfilSimpan').addEventListener('click', () => {
+  const nama = document.getElementById('fProfilNama').value.trim().slice(0, 30);
+  const hub = document.getElementById('fProfilHub').value.trim().slice(0, 30);
+  const id = document.getElementById('profilEditId').value;
+  if(!nama){ alert('Isi nama dulu.'); return; }
+  if(profilData.some(p => p.nama.toLowerCase() === nama.toLowerCase() && p.id !== id)){ alert('Nama sudah dipakai anggota lain.'); return; }
+  const p = id ? profilById(id) : null;
+  if(p){
+    p.nama = nama; p.hubungan = hub; p.emoji = profilEmojiSel;
+    logAktivitas('grup', 'Mengubah anggota "' + nama + '"');
+  }else{
+    profilData.push({ id: profilBaruId(), nama, emoji: profilEmojiSel, hubungan: hub });
+    logAktivitas('grup', 'Menambah anggota "' + nama + '"');
+  }
+  saveProfil();
+  profilOverlay.classList.remove('show');
+  render();
+});
+const PROFIL_CEPAT = { 'Saya':'👤', 'Pasangan':'🧑', 'Anak':'🧒', 'Orang Tua':'👵' };
+function renderProfil(list){
+  const now = Date.now();
+  let out = '<button class="btn-primary" id="profBaru" style="width:100%;margin-bottom:14px;">+ Anggota Baru</button>';
+  if(!profilData.length){
+    out += '<div class="empty" style="margin-bottom:14px;">Belum ada anggota. Tambahkan anggota keluarga (atau kendaraan / rumah) supaya setiap pengingat punya pemilik dan bisa dilihat per orang.</div>'
+      + '<div class="chip-row">' + Object.keys(PROFIL_CEPAT).map(n => `<button class="btn-ghost" data-cepat="${fxAttr(n)}">+ ${escapeHtml(n)}</button>`).join('') + '</div>';
+  }
+  out += profilData.map((p, i) => {
+    const aktif = reminders.filter(r => r.pemilik === p.id && !r.selesai);
+    const perlu = aktif.filter(r => ['lewat','mendesak','segera'].includes(statusOf(r, now).level)).length;
+    const b30 = aktif.filter(r => r.biaya && new Date(r.tanggal) - now <= 30 * 864e5).reduce((t, r) => t + r.biaya, 0);
+    const info = [p.hubungan, aktif.length + ' aktif', perlu ? perlu + ' perlu tindakan' : '', b30 ? '≤30 hari ' + fmtRp(b30) : ''].filter(Boolean).map(escapeHtml).join(' · ');
+    return `<div class="grup-item fx-link" data-lihat="${fxAttr(p.id)}"><span class="gi-ic">${escapeHtml(p.emoji)}</span><div class="gi-tx"><b>${escapeHtml(p.nama)}</b><small>${info}</small></div>`
+      + `<button class="icon-btn" data-ubah="${i}">Ubah</button><button class="icon-btn danger" data-hapus="${i}">Hapus</button></div>`;
+  }).join('');
+  const tanpa = reminders.filter(r => !profilById(r.pemilik));
+  if(profilData.length && tanpa.length){
+    out += `<div class="drawer-divider" style="padding-left:0;">Belum ada pemilik (${tanpa.length})</div>`
+      + tanpa.slice(0, 40).map(r => `<div class="fx-own"><span>${escapeHtml(grupEmoji(r.grup || 'Lainnya'))} ${escapeHtml(r.nama)}</span><select data-assign="${fxAttr(r.id)}" aria-label="Pemilik ${fxAttr(r.nama)}">${profilOptions('', 'Pilih pemilik…')}</select></div>`).join('')
+      + (tanpa.length > 40 ? `<div class="hint">…dan ${tanpa.length - 40} lainnya. Atur lewat tombol Edit pada pengingat.</div>` : '');
+  }
+  list.innerHTML = out;
+  list.querySelector('#profBaru').addEventListener('click', () => openProfilModal(null));
+  list.querySelectorAll('[data-cepat]').forEach(b => b.addEventListener('click', () => {
+    const n = b.dataset.cepat;
+    profilData.push({ id: profilBaruId(), nama: n, emoji: PROFIL_CEPAT[n] || '👤', hubungan: '' });
+    saveProfil(); logAktivitas('grup', 'Menambah anggota "' + n + '"'); render();
+  }));
+  list.querySelectorAll('[data-lihat]').forEach(row => row.addEventListener('click', () => setView('pemilik:' + row.dataset.lihat)));
+  list.querySelectorAll('[data-ubah]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openProfilModal(profilData[+b.dataset.ubah]); }));
+  list.querySelectorAll('[data-hapus]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const p = profilData[+b.dataset.hapus]; if(!p) return;
+    const n = reminders.filter(r => r.pemilik === p.id).length;
+    if(!confirm(`Hapus anggota "${p.nama}"?` + (n ? ` ${n} pengingat akan menjadi tanpa pemilik (pengingatnya tidak dihapus).` : ''))) return;
+    reminders.forEach(r => { if(r.pemilik === p.id) r.pemilik = null; });
+    profilData = profilData.filter(x => x.id !== p.id);
+    if(byrFilter.pemilik === p.id) byrFilter.pemilik = 'semua';
+    saveReminders(); saveProfil();
+    logAktivitas('grup', 'Menghapus anggota "' + p.nama + '"');
+    render();
+  }));
+  list.querySelectorAll('[data-assign]').forEach(sel => sel.addEventListener('change', () => {
+    const r = reminders.find(x => x.id === sel.dataset.assign), p = profilById(sel.value);
+    if(!r || !p) return;
+    r.pemilik = p.id;
+    saveReminders();
+    logAktivitas('edit', 'Menetapkan pemilik "' + p.nama + '" untuk "' + r.nama + '"');
+    render();
+  }));
+}
+
+document.getElementById('btnExitBackup').addEventListener('click', async ()=>{ await doBackup(); showExitConfirm(); });
+window.addEventListener('beforeunload', (e)=>{ if(needBackup()){ e.preventDefault(); e.returnValue = ''; } });
+
+// ---------- Init ----------
+loadReminders();
+loadGrups();
+requestPersist();
+updateNotifBanner();
+render();
+history.replaceState({sentinel:true}, '');
+history.pushState({view:'dashboard', guard:true}, '');
+setInterval(tick, 1000);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+<script>
+// ===== v1.8: Kunci aplikasi (PIN + sidik jari) & Brankas Dokumen =====
+const $ = id => document.getElementById(id);
+const KUNCI_KEY = 'pengingat-kunci-v1';
+const BRANKAS_KEY = 'pengingat-brankas-v1';
+let kunci = { aktif:false, salt:'', hash:'', bio:null, autoLock:5, gateVault:true, fails:0, lockUntil:0 };
+let brankasData = [];
+let isLocked = false, lastAuth = 0, lastActive = Date.now(), hiddenAt = 0;
+let pinCtl = null, pinLockTimer = null, vaultGateBusy = false;
+
+function attrSafe(s){ return String(s == null ? '' : s).replace(/[^\w-]/g, ''); }
+function loadKunci(){ try{ Object.assign(kunci, JSON.parse(localStorage.getItem(KUNCI_KEY) || '{}')); }catch(e){} }
+function saveKunci(){ try{ localStorage.setItem(KUNCI_KEY, JSON.stringify(kunci)); }catch(e){} }
+function normBrankas(a){
+  if(!Array.isArray(a)) return [];
+  return a.filter(e => e && e.nama).map(e => ({
+    id: attrSafe(e.id) || uid(),
+    nama: String(e.nama), kat: String(e.kat || 'Lainnya'),
+    pemilik: String(e.pemilik || ''), penerbit: String(e.penerbit || ''),
+    terbit: String(e.terbit || ''), berlaku: String(e.berlaku || ''),
+    reminderId: attrSafe(e.reminderId), catatan: String(e.catatan || ''),
+    rows: Array.isArray(e.rows) ? e.rows.filter(r => r && (r.k || r.v)).map(r => ({ k: String(r.k || 'Nomor'), v: String(r.v || '') })) : []
+  }));
+}
+function loadBrankas(){ try{ brankasData = normBrankas(JSON.parse(localStorage.getItem(BRANKAS_KEY) || '[]')); }catch(e){ brankasData = []; } }
+function saveBrankas(quiet){
+  try{ localStorage.setItem(BRANKAS_KEY, JSON.stringify(brankasData)); }
+  catch(e){ alert('Gagal menyimpan: penyimpanan browser penuh.'); }
+  if(!quiet) markChange();
+}
+
+// ---------- Util kripto ----------
+function bufToB64(buf){ const u = new Uint8Array(buf); let s = ''; for(let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); }
+function b64ToBuf(b){ const s = atob(b); const u = new Uint8Array(s.length); for(let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+function randBytes(n){
+  const u = new Uint8Array(n);
+  if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(u);
+  else for(let i = 0; i < n; i++) u[i] = Math.floor(Math.random() * 256);
+  return u;
+}
+async function hashPin(pin, salt){
+  if(window.crypto && crypto.subtle){
+    const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name:'PBKDF2', salt:b64ToBuf(salt), iterations:150000, hash:'SHA-256' }, k, 256);
+    return bufToB64(bits);
+  }
+  let h = 0x811c9dc5; const s = salt + pin;
+  for(let i = 0; i < 20000; i++){ for(let j = 0; j < s.length; j++){ h ^= s.charCodeAt(j); h = Math.imul(h, 16777619) >>> 0; } }
+  return 'f' + h.toString(16);
+}
+
+// ---------- Sidik jari (WebAuthn, verifikasi lokal oleh perangkat) ----------
+async function bioSupported(){
+  try{
+    return !!(window.isSecureContext && window.PublicKeyCredential && navigator.credentials &&
+      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
+      await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+  }catch(e){ return false; }
+}
+async function bioRegister(){
+  const cred = await navigator.credentials.create({ publicKey:{
+    challenge: randBytes(32), rp:{ name:'Pengingat Dokumen' },
+    user:{ id: randBytes(16), name:'pengguna-pengingat', displayName:'Pengguna Pengingat' },
+    pubKeyCredParams:[{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
+    authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'discouraged' },
+    timeout:60000, attestation:'none'
+  }});
+  return cred ? bufToB64(cred.rawId) : null;
+}
+async function bioVerify(){
+  if(!kunci.bio) return false;
+  const a = await navigator.credentials.get({ publicKey:{
+    challenge: randBytes(32),
+    allowCredentials:[{ type:'public-key', id:b64ToBuf(kunci.bio), transports:['internal'] }],
+    userVerification:'required', timeout:60000
+  }});
+  return !!a;
+}
+
+// ---------- Layar PIN ----------
+(function buildKeypad(){
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
+  $('keypad').innerHTML = keys.map(k => k === '' ? '<span></span>' :
+    `<button type="button" class="key" data-k="${k}" aria-label="${k === '⌫' ? 'Hapus' : k}">${k}</button>`).join('');
+  $('keypad').addEventListener('click', e => {
+    const b = e.target.closest('.key'); if(!b) return;
+    if(b.dataset.k === '⌫') pinBack(); else pinPress(b.dataset.k);
+  });
+})();
+function pinPaint(){
+  const n = pinCtl ? pinCtl.buf.length : 0;
+  $('pinDots').innerHTML = Array.from({ length:6 }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('');
+}
+function pinSetSub(t){ $('lockSub').textContent = t || ''; }
+function pinSetMsg(t){ $('lockMsg').textContent = t || ''; }
+function pinShake(){
+  const d = $('pinDots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+  setTimeout(() => d.classList.remove('shake'), 450);
+  try{ navigator.vibrate && navigator.vibrate(180); }catch(e){}
+}
+function pinPress(d){
+  const c = pinCtl; if(!c || c.busy || c.buf.length >= 6) return;
+  c.buf += d; pinPaint();
+  if(c.buf.length === 6) pinSubmit();
+}
+function pinBack(){ const c = pinCtl; if(!c || c.busy) return; c.buf = c.buf.slice(0, -1); pinPaint(); }
+async function pinSubmit(){
+  const c = pinCtl; c.busy = true; pinSetMsg('');
+  let r;
+  try{ r = await c.o.validate(c.buf); }catch(e){ r = { ok:false, msg:'Terjadi kesalahan. Coba lagi.' }; }
+  if(pinCtl !== c) return;
+  c.busy = false;
+  if(r.ok){ pinClose('ok'); return; }
+  c.buf = '';
+  if(r.sub) pinSetSub(r.sub);
+  if(r.msg){ pinSetMsg(r.msg); pinShake(); }
+  pinPaint();
+}
+function pinClose(r){
+  const c = pinCtl; if(!c) return;
+  pinCtl = null; clearInterval(pinLockTimer);
+  $('lockScreen').style.display = 'none'; pinSetMsg('');
+  c.res(r);
+}
+async function pinBio(manual){
+  const c = pinCtl; if(!c || !c.o.onBio || c.busy) return;
+  c.busy = true; let ok = false;
+  try{ ok = await c.o.onBio(); }
+  catch(e){ if(manual) pinSetMsg('Sidik jari dibatalkan atau tidak dikenali. Gunakan PIN.'); }
+  if(pinCtl !== c) return;
+  c.busy = false;
+  if(ok){ kunci.fails = 0; kunci.lockUntil = 0; saveKunci(); pinClose('ok'); }
+  else if(manual && !$('lockMsg').textContent) pinSetMsg('Verifikasi sidik jari gagal. Gunakan PIN.');
+}
+function pinScreen(o){
+  return new Promise(res => {
+    pinCtl = { o, buf:'', busy:false, res };
+    $('lockTitle').textContent = o.title;
+    pinSetSub(o.sub); pinSetMsg('');
+    $('btnBio').style.display = o.onBio ? '' : 'none';
+    $('btnLockCancel').style.display = o.cancel ? '' : 'none';
+    $('btnLupaPin').style.display = o.forgot ? '' : 'none';
+    $('lockScreen').style.display = 'flex';
+    pinPaint();
+    if(o.validate === validateUnlock && kunci.lockUntil > Date.now()){ pinSetMsg(lockoutText()); startLockTimer(); }
+    if(o.onBio && o.autoBio){ const c = pinCtl; setTimeout(() => { if(pinCtl === c) pinBio(false); }, 350); }
+  });
+}
+function lockoutText(){
+  const s = Math.ceil((kunci.lockUntil - Date.now()) / 1000);
+  if(s <= 0) return '';
+  return 'Terlalu banyak percobaan salah. Coba lagi dalam ' + (s >= 60 ? Math.ceil(s / 60) + ' menit' : s + ' detik') + '.';
+}
+function startLockTimer(){
+  clearInterval(pinLockTimer);
+  pinLockTimer = setInterval(() => {
+    const t = lockoutText();
+    if(!pinCtl || !t){ clearInterval(pinLockTimer); if(pinCtl) pinSetMsg(''); return; }
+    pinSetMsg(t);
+  }, 1000);
+}
+async function validateUnlock(pin){
+  const now = Date.now();
+  if(kunci.lockUntil > now) return { ok:false, msg:lockoutText() };
+  const h = await hashPin(pin, kunci.salt);
+  if(h === kunci.hash){ kunci.fails = 0; kunci.lockUntil = 0; saveKunci(); return { ok:true }; }
+  kunci.fails++;
+  if(kunci.fails % 5 === 0){
+    const step = kunci.fails / 5;
+    const sec = Math.min(900, 30 * Math.pow(2, step - 1));
+    kunci.lockUntil = now + sec * 1000; saveKunci(); startLockTimer();
+    return { ok:false, msg:lockoutText() };
+  }
+  saveKunci();
+  return { ok:false, msg:'PIN salah. Sisa ' + (5 - kunci.fails % 5) + ' percobaan sebelum dikunci sementara.' };
+}
+$('btnBio').addEventListener('click', () => pinBio(true));
+$('btnLockCancel').addEventListener('click', () => { if(pinCtl && pinCtl.o.cancel) pinClose('cancel'); });
+$('btnLupaPin').addEventListener('click', () => {
+  if(!confirm('Reset aplikasi? SEMUA data (pengingat, Brankas, riwayat, kunci) akan dihapus permanen dari browser ini. Lanjutkan hanya jika kamu punya file cadangan.')) return;
+  if(!confirm('Yakin? Tindakan ini tidak bisa dibatalkan.')) return;
+  [STORAGE_KEY, BRANKAS_KEY, KUNCI_KEY, LOG_KEY, GRUP_KEY, SETTINGS_KEY, 'pengingat-last-backup', 'pengingat-last-change']
+    .forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+  reminders = [];
+  location.reload();
+});
+document.addEventListener('keydown', e => {
+  if(!pinCtl) return;
+  if(/^\d$/.test(e.key)){ e.preventDefault(); pinPress(e.key); }
+  else if(e.key === 'Backspace'){ e.preventDefault(); pinBack(); }
+  else if(e.key === 'Escape' && pinCtl.o.cancel){ pinClose('cancel'); }
+});
+
+// ---------- Kunci / buka kunci ----------
+function setBgInert(on){
+  document.querySelectorAll('.topbar,.bottom-nav,.drawer,.drawer-overlay,.wrap > *:not(.alarm-bar)').forEach(n => { n.inert = on; });
+}
+async function kunciSekarang(){
+  if(!kunci.aktif || pinCtl) return;
+  isLocked = true; bkPassCache = null;
+  document.querySelectorAll('.overlay.show').forEach(o => o.classList.remove('show'));
+  closeDrawer(); setBgInert(true);
+  brankasHideAll();
+  await pinScreen({ title:'Pengingat Terkunci', sub:'Masukkan PIN 6 digit', onBio:kunci.bio ? bioVerify : null, autoBio:true, forgot:true, validate:validateUnlock });
+  isLocked = false; lastAuth = Date.now(); lastActive = Date.now(); setBgInert(false);
+  if(currentView === 'brankas') render();
+}
+function needVaultAuth(){ return kunci.aktif && kunci.gateVault && !isLocked && !pinCtl && (Date.now() - lastAuth >= 120000); }
+async function vaultGate(){
+  const r = await pinScreen({ title:'Buka Brankas', sub:'Verifikasi untuk melihat dokumen penting', cancel:true, onBio:kunci.bio ? bioVerify : null, autoBio:true, validate:validateUnlock });
+  if(r === 'ok'){ lastAuth = Date.now(); return true; }
+  return false;
+}
+async function verifyOwner(title){
+  const r = await pinScreen({ title, sub:'Masukkan PIN saat ini', cancel:true, onBio:kunci.bio ? bioVerify : null, validate:validateUnlock });
+  return r === 'ok';
+}
+function pinLemah(p){
+  return /^(\d)\1+$/.test(p) || ['123456','654321','012345','234567','345678','456789','567890','123123','121212','112233','000123'].includes(p);
+}
+async function setupPin(){
+  let first = null;
+  const r = await pinScreen({ title:'Buat PIN', sub:'Masukkan PIN baru 6 digit', cancel:true, validate: async pin => {
+    if(first === null){
+      if(pinLemah(pin)) return { ok:false, msg:'PIN terlalu mudah ditebak. Hindari angka berulang atau berurutan.' };
+      first = pin; return { sub:'Ulangi PIN untuk konfirmasi' };
+    }
+    if(pin !== first){ first = null; return { ok:false, msg:'PIN tidak sama. Ulangi dari awal.', sub:'Masukkan PIN baru 6 digit' }; }
+    return { ok:true };
+  }});
+  return r === 'ok' ? first : null;
+}
+async function kunciAktifkan(){
+  const pin = await setupPin(); if(!pin) return;
+  kunci.salt = bufToB64(randBytes(16)); kunci.hash = await hashPin(pin, kunci.salt);
+  kunci.aktif = true; kunci.fails = 0; kunci.lockUntil = 0; kunci.bio = null;
+  saveKunci(); lastAuth = Date.now(); lastActive = Date.now();
+  logAktivitas('keamanan', 'Mengaktifkan kunci aplikasi (PIN)');
+  showToast('Kunci PIN aktif'); kunciUIRefresh(); if(currentView === 'brankas') render();
+}
+async function kunciNonaktif(){
+  if(!await verifyOwner('Matikan Kunci')) return;
+  kunci.aktif = false; kunci.hash = ''; kunci.salt = ''; kunci.bio = null; kunci.fails = 0; kunci.lockUntil = 0;
+  saveKunci(); logAktivitas('keamanan', 'Mematikan kunci aplikasi');
+  showToast('Kunci dimatikan'); kunciUIRefresh(); if(currentView === 'brankas') render();
+}
+async function kunciUbahPin(){
+  if(!await verifyOwner('Ubah PIN')) return;
+  const pin = await setupPin(); if(!pin) return;
+  kunci.salt = bufToB64(randBytes(16)); kunci.hash = await hashPin(pin, kunci.salt);
+  kunci.fails = 0; kunci.lockUntil = 0; saveKunci();
+  logAktivitas('keamanan', 'Mengubah PIN'); showToast('PIN diperbarui');
+}
+async function bioAktif(){
+  try{
+    const id = await bioRegister();
+    if(id){ kunci.bio = id; saveKunci(); logAktivitas('keamanan', 'Mendaftarkan sidik jari'); showToast('Sidik jari didaftarkan'); }
+  }catch(e){
+    alert('Pendaftaran sidik jari dibatalkan atau gagal. Pastikan perangkat sudah punya sidik jari/kunci layar dan aplikasi dibuka lewat HTTPS.');
+  }
+  kunciUIRefresh();
+}
+function bioHapus(){
+  if(!confirm('Hapus sidik jari dari aplikasi ini? Kamu tetap bisa membuka dengan PIN.')) return;
+  kunci.bio = null; saveKunci(); logAktivitas('keamanan', 'Menghapus sidik jari'); kunciUIRefresh();
+}
+async function kunciUIRefresh(){
+  const a = kunci.aktif;
+  $('btnLockTop').style.display = a ? '' : 'none';
+  $('btnLockNow').style.display = a ? '' : 'none';
+  $('kStatus').innerHTML = a ? '🟢 Kunci PIN <b>aktif</b>' + (kunci.bio ? ' · sidik jari aktif' : '') : '⚪ Kunci aplikasi <b>belum aktif</b>. Aktifkan agar aplikasi dan Brankas hanya bisa dibuka olehmu.';
+  $('btnKAktif').textContent = a ? 'Matikan Kunci PIN' : 'Aktifkan Kunci PIN';
+  $('btnKAktif').className = a ? 'btn-ghost' : 'btn-primary';
+  $('kOpsi').style.display = a ? '' : 'none';
+  $('fAutoLock').value = String(kunci.autoLock);
+  $('fGateVault').checked = !!kunci.gateVault;
+  const ok = await bioSupported();
+  const btn = $('btnKBio');
+  btn.disabled = !ok; btn.style.opacity = ok ? '' : '.5';
+  btn.textContent = kunci.bio ? 'Hapus Sidik Jari' : 'Daftarkan Sidik Jari';
+  $('kBioHint').textContent = ok
+    ? (kunci.bio ? 'Sidik jari bisa dipakai untuk membuka aplikasi dan Brankas.' : 'Daftarkan sidik jari/kunci layar perangkat agar tidak perlu mengetik PIN.')
+    : 'Sidik jari tidak tersedia: perangkat tidak mendukung, atau aplikasi tidak dibuka lewat HTTPS (atau localhost).';
+}
+$('btnKeamanan').addEventListener('click', () => { kunciUIRefresh(); $('keamananOverlay').classList.add('show'); });
+$('btnKTutup').addEventListener('click', () => $('keamananOverlay').classList.remove('show'));
+$('keamananOverlay').addEventListener('click', e => { if(e.target === $('keamananOverlay')) $('keamananOverlay').classList.remove('show'); });
+$('btnKAktif').addEventListener('click', () => kunci.aktif ? kunciNonaktif() : kunciAktifkan());
+$('btnKUbah').addEventListener('click', kunciUbahPin);
+$('btnKBio').addEventListener('click', () => kunci.bio ? bioHapus() : bioAktif());
+$('fAutoLock').addEventListener('change', e => { kunci.autoLock = parseInt(e.target.value, 10); saveKunci(); });
+$('fGateVault').addEventListener('change', e => { kunci.gateVault = e.target.checked; saveKunci(); });
+$('btnLockNow').addEventListener('click', kunciSekarang);
+$('btnLockTop').addEventListener('click', kunciSekarang);
+$('btnKLockNow').addEventListener('click', () => { $('keamananOverlay').classList.remove('show'); kunciSekarang(); });
+
+// Kunci otomatis: tidak aktif / aplikasi ditinggalkan
+['pointerdown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(ev =>
+  window.addEventListener(ev, () => { if(!isLocked) lastActive = Date.now(); }, { passive:true, capture:true }));
+setInterval(() => {
+  if(!kunci.aktif || isLocked || pinCtl) return;
+  const menit = kunci.autoLock === 0 ? 5 : kunci.autoLock;
+  if(Date.now() - lastActive > menit * 60000) kunciSekarang();
+}, 5000);
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden'){ hiddenAt = Date.now(); return; }
+  if(kunci.aktif && !isLocked && !pinCtl && hiddenAt && Date.now() - hiddenAt >= kunci.autoLock * 60000) kunciSekarang();
+  hiddenAt = 0;
+});
+
+// ---------- Brankas Dokumen ----------
+const BRK_KAT = [['Kendaraan','🚗'],['Identitas','🪪'],['Asuransi','🛡️'],['Kesehatan','🏥'],['Keuangan','🏦'],['Pajak','🧾'],['Pendidikan','🎓'],['Pekerjaan','💼'],['Properti','🏠'],['Lainnya','🗂️']];
+const BRK_TPL = {
+  'STNK / Kendaraan': { nama:'STNK ', kat:'Kendaraan', rows:['No. Polisi','No. Rangka','No. Mesin','No. BPKB'] },
+  'SIM': { nama:'SIM', kat:'Identitas', rows:['Nomor SIM','Golongan'] },
+  'KTP / NIK': { nama:'KTP', kat:'Identitas', rows:['NIK'] },
+  'Kartu Keluarga': { nama:'Kartu Keluarga', kat:'Identitas', rows:['No. KK'] },
+  'Paspor': { nama:'Paspor', kat:'Identitas', rows:['Nomor Paspor'] },
+  'NPWP': { nama:'NPWP', kat:'Pajak', rows:['Nomor NPWP','EFIN'] },
+  'BPJS Kesehatan': { nama:'BPJS Kesehatan', kat:'Kesehatan', rows:['No. Kartu','Faskes'] },
+  'BPJS Ketenagakerjaan': { nama:'BPJS Ketenagakerjaan', kat:'Pekerjaan', rows:['No. Kartu'] },
+  'Polis Asuransi': { nama:'Polis Asuransi', kat:'Asuransi', rows:['No. Polis','Agen / Kontak'] },
+  'Rekening Bank': { nama:'Rekening', kat:'Keuangan', rows:['Nama Bank','No. Rekening'] },
+  'Sertifikat Properti': { nama:'Sertifikat', kat:'Properti', rows:['No. Sertifikat','Lokasi'] }
+};
+let brankasKat = 'Semua';
+const brankasOpen = new Set();
+const brankasShown = new Map();
+function katEmoji(k){ const f = BRK_KAT.find(x => x[0] === k); return f ? f[1] : '🗂️'; }
+function brankasHideAll(){
+  brankasShown.forEach(t => clearTimeout(t)); brankasShown.clear(); brankasOpen.clear();
+  if(currentView === 'brankas') render();
+}
+function fmtTgl(s){
+  const d = new Date(s + 'T00:00:00');
+  return isNaN(d) ? s : d.toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+}
+function maskTail(v){ return v.length > 4 ? '•••• ' + v.slice(-4) : '••••'; }
+function copyText(s){
+  const done = () => showToast('Disalin ke papan klip');
+  const fb = () => {
+    const t = document.createElement('textarea');
+    t.value = s; t.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(t); t.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ showToast('Gagal menyalin'); }
+    t.remove();
+  };
+  if(navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(s).then(done).catch(fb); else fb();
+}
+function renderBrankas(list){
+  if(needVaultAuth()){
+    list.innerHTML = '<div class="empty">🔐 Brankas membutuhkan verifikasi…</div>';
+    if(!vaultGateBusy){
+      vaultGateBusy = true;
+      vaultGate().then(ok => { vaultGateBusy = false; if(ok) render(); else setView('dashboard'); });
+    }
+    return;
+  }
+  const q = searchQuery.trim().toLowerCase(), now = Date.now();
+  const kats = ['Semua', ...BRK_KAT.map(k => k[0])];
+  const chips = '<div class="tabs" style="display:flex">' + kats.map(k =>
+    `<button class="tab ${k === brankasKat ? 'active' : ''}" data-b="kat" data-v="${k}">${k === 'Semua' ? 'Semua' : katEmoji(k) + ' ' + k}</button>`).join('') + '</div>';
+  const info = kunci.aktif
+    ? `<div class="vinfo ok">🔒 Brankas dilindungi kunci PIN${kunci.bio ? ' &amp; sidik jari' : ''}.</div>`
+    : '<div class="vinfo"><span>⚠️ Kunci aplikasi belum aktif. Siapa pun yang memegang perangkat ini bisa melihat isi Brankas.</span><button class="icon-btn" data-b="lock">Aktifkan Kunci</button></div>';
+  const items = brankasData.filter(e => (brankasKat === 'Semua' || e.kat === brankasKat) &&
+    (!q || [e.nama, e.kat, e.pemilik, e.penerbit, e.catatan, ...e.rows.map(r => r.k + ' ' + r.v)].join(' ').toLowerCase().includes(q)))
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  let body;
+  if(!items.length){
+    body = '<div class="empty">' + (brankasData.length ? 'Tidak ada dokumen yang cocok.' : 'Belum ada dokumen di Brankas. Simpan nomor STNK, SIM, KTP, BPJS, polis asuransi, dan dokumen penting lainnya di sini.') +
+      '<br><br><button class="btn-primary" data-b="add">+ Tambah Dokumen</button></div>';
+  }else{
+    body = '<div class="vlist">' + items.map(e => {
+      let chip = '', col = 'var(--green)';
+      const t = e.berlaku ? new Date(e.berlaku + 'T23:59:59').getTime() : NaN;
+      if(!isNaN(t)){
+        const hari = Math.ceil((t - now) / 864e5);
+        if(t < now){ chip = 'Kedaluwarsa'; col = 'var(--red)'; }
+        else if(hari <= 30){ chip = hari + ' hari lagi'; col = 'var(--amber)'; }
+        else chip = 'Berlaku';
+      }
+      const open = brankasOpen.has(e.id);
+      const sub = [e.kat, e.pemilik].filter(Boolean).join(' · ');
+      const prev = e.rows[0] ? escapeHtml(e.rows[0].k) + ': ' + maskTail(e.rows[0].v) : '';
+      const rows = e.rows.map((r, i) => {
+        const shown = brankasShown.has(e.id + ':' + i);
+        return `<div class="vrow"><div class="vt"><div class="vk">${escapeHtml(r.k)}</div><div class="vv">${shown ? escapeHtml(r.v) : '••••••••'}</div></div>` +
+          `<button class="mini" data-b="eye" data-id="${attrSafe(e.id)}" data-i="${i}" aria-label="${shown ? 'Sembunyikan' : 'Tampilkan'}">${shown ? '🙈' : '👁️'}</button>` +
+          `<button class="mini" data-b="copy" data-id="${attrSafe(e.id)}" data-i="${i}" aria-label="Salin">📋</button></div>`;
+      }).join('');
+      const meta = [['Atas nama', e.pemilik], ['Penerbit', e.penerbit],
+        ['Tanggal terbit', e.terbit ? fmtTgl(e.terbit) : ''], ['Berlaku sampai', e.berlaku ? fmtTgl(e.berlaku) : '']]
+        .filter(m => m[1]).map(m => `<div class="vmeta"><span>${m[0]}</span><span>${escapeHtml(m[1])}</span></div>`).join('');
+      const rem = e.reminderId ? reminders.find(r => r.id === e.reminderId) : null;
+      const remRow = rem ? `<div class="vmeta"><span>Pengingat</span><span>${escapeHtml(rem.nama)}<br>${escapeHtml(relText(rem, new Date(rem.tanggal) - now))}</span></div>` : '';
+      return `<div class="vcard${open ? ' open' : ''}" style="--status-color:${col}">` +
+        `<div class="vcard-main" data-b="toggle" data-id="${attrSafe(e.id)}"><div class="c-ic">${katEmoji(e.kat)}</div>` +
+        `<div class="c-tx"><div class="card-title">${escapeHtml(e.nama)}</div><div class="card-date">${escapeHtml(sub || 'Dokumen')}</div>${prev ? `<div class="vprev">${prev}</div>` : ''}</div>` +
+        `<div class="vchip">${chip}</div></div>` +
+        `<div class="vdetail">${rows}${meta}${remRow}${e.catatan ? `<div class="vnote">${escapeHtml(e.catatan)}</div>` : ''}` +
+        `<div class="vactions"><button class="icon-btn" data-b="edit" data-id="${attrSafe(e.id)}">Edit</button><button class="icon-btn danger" data-b="del" data-id="${attrSafe(e.id)}">Hapus</button></div></div></div>`;
+    }).join('') + '</div>';
+  }
+  list.innerHTML = info + chips + body;
+}
+$('list').addEventListener('click', ev => {
+  if(currentView !== 'brankas') return;
+  const t = ev.target.closest('[data-b]'); if(!t) return;
+  const act = t.dataset.b, id = t.dataset.id;
+  const e = brankasData.find(x => x.id === id);
+  if(act === 'kat'){ brankasKat = t.dataset.v; render(); }
+  else if(act === 'toggle'){
+    const card = t.closest('.vcard'); card.classList.toggle('open');
+    if(card.classList.contains('open')) brankasOpen.add(id); else brankasOpen.delete(id);
+  }
+  else if(act === 'eye' && e){
+    const key = id + ':' + t.dataset.i;
+    if(brankasShown.has(key)){ clearTimeout(brankasShown.get(key)); brankasShown.delete(key); }
+    else brankasShown.set(key, setTimeout(() => { brankasShown.delete(key); if(currentView === 'brankas' && !isLocked) render(); }, 15000));
+    render();
+  }
+  else if(act === 'copy' && e){ const r = e.rows[+t.dataset.i]; if(r) copyText(r.v); }
+  else if(act === 'edit' && e) openBrankasModal(e);
+  else if(act === 'del' && e){
+    if(!confirm('Hapus "' + e.nama + '" dari Brankas? Tindakan ini tidak bisa dibatalkan.')) return;
+    brankasData = brankasData.filter(x => x.id !== id); brankasOpen.delete(id);
+    saveBrankas(); logAktivitas('brankas', 'Menghapus data brankas "' + e.nama + '"'); render();
+  }
+  else if(act === 'lock'){ kunciUIRefresh(); $('keamananOverlay').classList.add('show'); }
+  else if(act === 'add') openBrankasModal(null);
+});
+
+// Modal tambah / ubah
+$('bKat').innerHTML = BRK_KAT.map(k => `<option value="${k[0]}">${k[1]} ${k[0]}</option>`).join('');
+$('bTpl').innerHTML = '<option value="">— Pilih templat —</option>' + Object.keys(BRK_TPL).map(k => `<option>${k}</option>`).join('');
+function bRowAdd(k, v){
+  const d = document.createElement('div'); d.className = 'brow';
+  d.innerHTML = '<input type="text" class="bk" placeholder="Nama kolom" maxlength="40"><input type="text" class="bv" placeholder="Isi" maxlength="200" autocomplete="off"><button type="button" class="brow-x" aria-label="Hapus kolom">✕</button>';
+  d.querySelector('.bk').value = k || ''; d.querySelector('.bv').value = v || '';
+  d.querySelector('.brow-x').addEventListener('click', () => d.remove());
+  $('bRows').appendChild(d);
+}
+function openBrankasModal(e){
+  $('brankasTitle').textContent = e ? 'Ubah Dokumen Brankas' : 'Tambah Dokumen Brankas';
+  $('bEditId').value = e ? e.id : '';
+  $('bTplWrap').style.display = e ? 'none' : '';
+  $('bTpl').value = '';
+  $('bNama').value = e ? e.nama : '';
+  $('bKat').value = e ? e.kat : (brankasKat !== 'Semua' ? brankasKat : 'Identitas');
+  if(!$('bKat').value) $('bKat').value = 'Lainnya';
+  $('bPemilik').value = e ? e.pemilik : '';
+  $('bPenerbit').value = e ? e.penerbit : '';
+  $('bTerbit').value = e ? e.terbit : '';
+  $('bBerlaku').value = e ? e.berlaku : '';
+  $('bReminder').innerHTML = '<option value="">— Tidak terkait —</option>' +
+    reminders.slice().sort((a, b) => a.nama.localeCompare(b.nama, 'id')).map(r => `<option value="${attrSafe(r.id)}">${escapeHtml(r.nama)}</option>`).join('');
+  $('bReminder').value = e ? e.reminderId : '';
+  $('bCatatan').value = e ? e.catatan : '';
+  $('bRows').innerHTML = '';
+  (e && e.rows.length ? e.rows : [{ k:'Nomor', v:'' }]).forEach(r => bRowAdd(r.k, r.v));
+  $('brankasOverlay').classList.add('show');
+  setTimeout(() => $('bNama').focus(), 60);
+}
+$('bTpl').addEventListener('change', ev => {
+  const t = BRK_TPL[ev.target.value]; if(!t) return;
+  if(!$('bNama').value.trim()) $('bNama').value = t.nama;
+  $('bKat').value = t.kat;
+  const typed = [...$('bRows').querySelectorAll('.bv')].some(i => i.value.trim());
+  if(!typed){ $('bRows').innerHTML = ''; t.rows.forEach(k => bRowAdd(k, '')); }
+});
+$('bAddRow').addEventListener('click', () => bRowAdd('', ''));
+$('btnBCancel').addEventListener('click', () => $('brankasOverlay').classList.remove('show'));
+$('brankasOverlay').addEventListener('click', ev => { if(ev.target === $('brankasOverlay')) $('brankasOverlay').classList.remove('show'); });
+$('btnBSave').addEventListener('click', () => {
+  const nama = $('bNama').value.trim();
+  if(!nama){ alert('Isi nama dokumen dulu.'); return; }
+  const rows = [...$('bRows').querySelectorAll('.brow')]
+    .map(d => ({ k:d.querySelector('.bk').value.trim(), v:d.querySelector('.bv').value.trim() }))
+    .filter(r => r.k || r.v).map(r => ({ k:r.k || 'Nomor', v:r.v }));
+  const data = { nama, kat:$('bKat').value, pemilik:$('bPemilik').value.trim(), penerbit:$('bPenerbit').value.trim(),
+    terbit:$('bTerbit').value, berlaku:$('bBerlaku').value, reminderId:$('bReminder').value, catatan:$('bCatatan').value.trim(), rows };
+  const id = $('bEditId').value;
+  if(id){
+    const e = brankasData.find(x => x.id === id);
+    if(e) Object.assign(e, data);
+    logAktivitas('brankas', 'Mengubah data brankas "' + nama + '"');
+  }else{
+    const baru = Object.assign({ id: uid() }, data);
+    brankasData.push(baru); brankasOpen.add(baru.id);
+    logAktivitas('brankas', 'Menambah data brankas "' + nama + '" (' + data.kat + ')');
+  }
+  saveBrankas();
+  $('brankasOverlay').classList.remove('show');
+  render();
+});
+
+// ---------- Init ----------
+loadKunci(); loadBrankas(); kunciUIRefresh();
+if(kunci.aktif) kunciSekarang();
+</script>
+</body>
+</html>
